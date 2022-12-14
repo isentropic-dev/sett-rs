@@ -35,9 +35,10 @@ fn main() {
     let results = stepper.integrate().expect("No dice integrating.");
 
     println!("{}", results);
-    println!(
-        "time: {:#?}, state: {:#?}",
-        stepper.x_out(),
-        stepper.y_out()
-    );
+    for (x, ys) in stepper.x_out().iter().zip(stepper.y_out().iter()) {
+        println!(
+            "time: {:?}, v1: {:.3?}, x1: {:.3?}, v2: {:.3?}, x2: {:.3?}",
+            x, ys[0], ys[1], ys[2], ys[3]
+        );
+    }
 }
