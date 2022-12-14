@@ -1,5 +1,3 @@
-extern crate nalgebra as na;
-
 use na::Matrix4;
 
 fn main() {
