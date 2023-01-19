@@ -31,7 +31,6 @@ impl fmt::Display for Engine {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{chx, fluid};
 
     #[test]
     fn create_engine() {
