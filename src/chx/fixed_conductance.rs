@@ -5,6 +5,10 @@ use crate::ParasiticPower;
 pub struct FixedConductance {}
 
 impl super::ColdHeatExchanger for FixedConductance {
+    fn volume(&self) -> f64 {
+        todo!()
+    }
+
     fn approach(&self) -> f64 {
         todo!()
     }

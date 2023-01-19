@@ -5,6 +5,10 @@ use crate::ParasiticPower;
 pub struct FixedApproach {}
 
 impl super::HotHeatExchanger for FixedApproach {
+    fn volume(&self) -> f64 {
+        todo!()
+    }
+
     fn approach(&self) -> f64 {
         todo!()
     }

@@ -5,6 +5,10 @@ use crate::ParasiticPower;
 pub struct Mod2 {}
 
 impl super::ColdHeatExchanger for Mod2 {
+    fn volume(&self) -> f64 {
+        todo!()
+    }
+
     fn approach(&self) -> f64 {
         todo!()
     }

@@ -5,6 +5,10 @@ use crate::ParasiticPower;
 pub struct NuclearIsomerMod2 {}
 
 impl super::HotHeatExchanger for NuclearIsomerMod2 {
+    fn volume(&self) -> f64 {
+        todo!()
+    }
+
     fn approach(&self) -> f64 {
         todo!()
     }

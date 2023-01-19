@@ -5,6 +5,10 @@ use crate::ParasiticPower;
 pub struct GPU3 {}
 
 impl super::ColdHeatExchanger for GPU3 {
+    fn volume(&self) -> f64 {
+        todo!()
+    }
+
     fn approach(&self) -> f64 {
         todo!()
     }
