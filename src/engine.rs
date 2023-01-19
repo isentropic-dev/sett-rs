@@ -3,18 +3,17 @@ use std::fmt;
 use crate::{chx, fluid, hhx, regen, ws};
 
 /// Represents a Stirling engine
-pub struct Engine<T: fluid::WorkingFluid> {
-    pub fluid: T,
+pub struct Engine {
+    pub fluid: Box<dyn fluid::WorkingFluid>,
     pub ws: Box<dyn ws::WorkingSpaces>,
     pub chx: Box<dyn chx::ColdHeatExchanger>,
     pub regen: Box<dyn regen::Regenerator>,
     pub hhx: Box<dyn hhx::HotHeatExchanger>,
 }
 
-impl<T: fluid::WorkingFluid> fmt::Display for Engine<T> {
+impl fmt::Display for Engine {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "An engine!")?;
-        writeln!(f, "Fluid: {}", self.fluid.describe())
+        writeln!(f, "An engine!")
     }
 }
 
@@ -25,7 +24,7 @@ mod tests {
 
     #[test]
     fn create_engine() {
-        let fluid = fluid::IdealGas::new("Hydrogen");
+        let fluid = Box::new(fluid::IdealGas::new("Hydrogen"));
         let ws = Box::new(ws::SinusoidalDrive {});
         let chx = Box::new(chx::FixedApproach {});
         let regen = Box::new(regen::FixedApproach {});
