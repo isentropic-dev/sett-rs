@@ -15,15 +15,16 @@ impl fmt::Display for Engine {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "An engine!")?;
         writeln!(f, "---")?;
-        writeln!(f, "{0}", self.fluid)?;
+        write!(f, "{}", self.fluid)?;
         writeln!(f, "---")?;
-        writeln!(f, "{0}", self.ws)?;
+        write!(f, "{}", self.ws)?;
         writeln!(f, "---")?;
-        writeln!(f, "{0}", self.chx)?;
+        write!(f, "{}", self.chx)?;
         writeln!(f, "---")?;
-        writeln!(f, "{0}", self.regen)?;
+        write!(f, "{}", self.regen)?;
         writeln!(f, "---")?;
-        writeln!(f, "{0}", self.hhx)
+        write!(f, "{}", self.hhx)?;
+        writeln!(f, "---")
     }
 }
 
