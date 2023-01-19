@@ -4,4 +4,5 @@ mod refprop;
 
 pub use ideal_gas::IdealGas;
 
+#[allow(clippy::module_name_repetitions)]
 pub trait WorkingFluid: std::fmt::Display {}

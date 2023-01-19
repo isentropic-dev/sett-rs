@@ -8,10 +8,8 @@ pub struct IdealGas {
 }
 
 impl IdealGas {
-    pub fn new(name: impl ToString) -> Self {
-        Self {
-            name: name.to_string(),
-        }
+    pub fn new(name: impl Into<String>) -> Self {
+        Self { name: name.into() }
     }
 }
 
