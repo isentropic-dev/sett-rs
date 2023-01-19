@@ -10,7 +10,7 @@ pub use mod2::Mod2;
 
 use crate::ParasiticPower;
 
-pub trait Regenerator {
+pub trait Regenerator: std::fmt::Display {
     /// Returns the approach or minimum ΔT (TODO: decide which it can/should be) of the regenerator
     fn approach(&self) -> f64;
 

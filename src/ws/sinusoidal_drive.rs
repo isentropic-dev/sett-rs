@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::ParasiticPower;
 
 use super::{Spaces, ThermalResistance, WorkingSpaces};
@@ -19,5 +21,11 @@ impl WorkingSpaces for SinusoidalDrive {
 
     fn parasitics(&self) -> ParasiticPower {
         todo!()
+    }
+}
+
+impl fmt::Display for SinusoidalDrive {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "Sinusoidal drive working spaces")
     }
 }

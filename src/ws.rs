@@ -10,7 +10,7 @@ pub use sinusoidal_drive::SinusoidalDrive;
 
 use crate::ParasiticPower;
 
-pub trait WorkingSpaces {
+pub trait WorkingSpaces: std::fmt::Display {
     /// Returns the frequency of the engine
     fn frequency(&self) -> f64;
 

@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::ParasiticPower;
 
 pub struct FixedConductance {}
@@ -13,5 +15,11 @@ impl super::Regenerator for FixedConductance {
 
     fn parasitics(&self) -> ParasiticPower {
         todo!()
+    }
+}
+
+impl fmt::Display for FixedConductance {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "Fixed conductance regenerator with infinite capacitance")
     }
 }

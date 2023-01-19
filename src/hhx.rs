@@ -14,7 +14,7 @@ pub use ni_mod2::NuclearIsomerMod2;
 
 use crate::ParasiticPower;
 
-pub trait HotHeatExchanger {
+pub trait HotHeatExchanger: std::fmt::Display {
     /// Returns the approach (ΔT) between `T_hot` and `T_l`
     ///
     /// A positive value indicates that `T_hot` is warmer than `T_l`.

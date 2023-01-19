@@ -13,7 +13,17 @@ pub struct Engine {
 
 impl fmt::Display for Engine {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "An engine!")
+        writeln!(f, "An engine!")?;
+        writeln!(f, "---")?;
+        writeln!(f, "{0}", self.fluid)?;
+        writeln!(f, "---")?;
+        writeln!(f, "{0}", self.ws)?;
+        writeln!(f, "---")?;
+        writeln!(f, "{0}", self.chx)?;
+        writeln!(f, "---")?;
+        writeln!(f, "{0}", self.regen)?;
+        writeln!(f, "---")?;
+        writeln!(f, "{0}", self.hhx)
     }
 }
 

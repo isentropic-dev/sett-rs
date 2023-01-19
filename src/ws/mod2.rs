@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::ParasiticPower;
 
 use super::{Spaces, ThermalResistance, WorkingSpaces};
@@ -19,5 +21,11 @@ impl WorkingSpaces for Mod2 {
 
     fn parasitics(&self) -> ParasiticPower {
         todo!()
+    }
+}
+
+impl fmt::Display for Mod2 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "NASA Mod II working spaces")
     }
 }

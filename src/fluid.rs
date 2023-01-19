@@ -1,23 +1,7 @@
-pub trait WorkingFluid {
-    /// Provide a short description of the working fluid
-    fn describe(&self) -> String;
-}
+mod fit;
+mod ideal_gas;
+mod refprop;
 
-#[derive(Debug)]
-pub struct IdealGas {
-    name: String,
-}
+pub use ideal_gas::IdealGas;
 
-impl IdealGas {
-    pub fn new(name: impl ToString) -> Self {
-        Self {
-            name: name.to_string(),
-        }
-    }
-}
-
-impl WorkingFluid for IdealGas {
-    fn describe(&self) -> String {
-        format!("Ideal Gas {}", self.name)
-    }
-}
+pub trait WorkingFluid: std::fmt::Display {}
