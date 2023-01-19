@@ -25,9 +25,10 @@ pub trait WorkingSpaces: std::fmt::Display {
 
     /// Indicates whether the working spaces model is converged
     ///
-    /// This trait method is optional and is typically only used for free piston
-    /// Stirling engine models.  For direct-drive Stirling engines, the working
-    /// spaces model is always converged and this trait method is not required.
+    /// This trait method is optional and is typically only used for free
+    /// piston Stirling engine models.  For kinematic (direct-drive) Stirling
+    /// engines, the working spaces model is always converged and this trait
+    /// method is not required.
     fn is_converged(&self) -> bool {
         true
     }
