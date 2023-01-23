@@ -1,14 +1,16 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+mod chx;
+mod engine;
+mod fluid;
+mod hhx;
+mod regen;
+mod ws;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+/// Represents parasitic power loss in a component
+///
+/// Each type of power has units of watts (W).
+#[derive(Default)]
+pub struct ParasiticPower {
+    pub thermal: f64,
+    pub mechanical: f64,
+    pub electrical: f64,
 }
