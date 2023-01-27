@@ -3,6 +3,7 @@ mod engine;
 mod fluid;
 mod hhx;
 mod regen;
+mod state;
 mod ws;
 
 /// Represents parasitic power loss in a component
