@@ -427,4 +427,55 @@ mod tests {
         dP_dt: 390423950.3129672
         "###);
     }
+    #[test]
+    fn test_typical_refprop_hydrogen_values() {
+        let inputs = read_test_inputs("refprop_hydrogen.json");
+        let inputs: Inputs = serde_json::from_str(&inputs).expect("test inputs file is invalid");
+        let flow_dir = FlowDirection::default();
+
+        let lu_solution = solve::<LU>(inputs, flow_dir).expect("should solve");
+        insta::assert_yaml_snapshot!(lu_solution, @r###"
+        ---
+        m_dot_ck: -0.028538301905757048
+        m_dot_kr: -0.038613913985699036
+        m_dot_rl: -0.05488487354380802
+        m_dot_le: -0.06597724838021778
+        Q_dot_k: 21675.379440630473
+        Q_dot_r: 392576.6689847019
+        Q_dot_l: 60769.16953666401
+        dTc_dt: 4548.878957390213
+        dTe_dt: 8995.893667930639
+        dP_dt: 417493124.93544215
+        "###);
+
+        let qr_solution = solve::<QR>(inputs, flow_dir).expect("should solve");
+        insta::assert_yaml_snapshot!(qr_solution, @r###"
+        ---
+        m_dot_ck: -0.028538301905757044
+        m_dot_kr: -0.038613913985699
+        m_dot_rl: -0.054884873543808
+        m_dot_le: -0.06597724838021779
+        Q_dot_k: 21675.37944063022
+        Q_dot_r: 392576.66898470203
+        Q_dot_l: 60769.169536663976
+        dTc_dt: 4548.878957390214
+        dTe_dt: 8995.893667930726
+        dP_dt: 417493124.9354423
+        "###);
+
+        let svd_solution = solve::<SvdDefault>(inputs, flow_dir).expect("should solve");
+        insta::assert_yaml_snapshot!(svd_solution, @r###"
+        ---
+        m_dot_ck: -0.02853830190560719
+        m_dot_kr: -0.038613913985456536
+        m_dot_rl: -0.05488487354363928
+        m_dot_le: -0.06597724838007397
+        Q_dot_k: 21675.379440630168
+        Q_dot_r: 392576.6689847028
+        Q_dot_l: 60769.16953666335
+        dTc_dt: 4548.878957390116
+        dTe_dt: 8995.893667931086
+        dP_dt: 417493124.9354424
+        "###);
+    }
 }
