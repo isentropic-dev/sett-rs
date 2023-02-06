@@ -10,11 +10,9 @@ const ALLOWED_FLOW_UPDATES: usize = 3;
 
 /// Solve the state equations
 ///
-/// TODO: Add significant documentation here about the state equations (mermaid
-///       diagram of the A matrix?).  Also discuss the flow direction and
-///       enthalpy selection at the control volume interfaces.
-///
 /// This function is generic over the decomposition function used to solve `Ax=b`.
+///
+/// Better documentation will be added (https://github.com/isentropic-dev/sett-rs/issues/9)
 pub fn solve<T: MatrixDecomposition>(
     inputs: Inputs,
     flow_dir_hint: FlowDirection,
