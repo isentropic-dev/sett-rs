@@ -1,15 +1,19 @@
 use anyhow::{anyhow, bail, Context, Result};
 use na::{SMatrix, SVector};
+use serde::{Deserialize, Serialize};
 
 type Matrix = SMatrix<f64, 10, 10>;
 type Vector = SVector<f64, 10>;
 
-// Specify how many times the flow directions can be adjusted before failing
-const MAX_FLOW_ADJUSTMENTS: usize = 3;
+// The maximum number of times flow directions can be updated before failing
+const ALLOWED_FLOW_UPDATES: usize = 3;
 
 /// Solve the state equations
 ///
-/// TODO: Add documentation here about `Ax=b`, the flow direction / enthalpy relationship / etc.
+/// TODO: Add significant documentation here about the state equations (mermaid
+///       diagram of the A matrix?).  Also discuss the flow direction and
+///       enthalpy selection at the control volume interfaces.
+///
 /// This function is generic over the decomposition function used to solve `Ax=b`.
 pub fn solve<T: MatrixDecomposition>(
     inputs: Inputs,
@@ -17,7 +21,7 @@ pub fn solve<T: MatrixDecomposition>(
 ) -> Result<Solution> {
     let system = System::new(inputs);
     let mut flow_dir = flow_dir_hint;
-    for _ in 0..=MAX_FLOW_ADJUSTMENTS {
+    for _ in 0..=ALLOWED_FLOW_UPDATES {
         let solution = system.solve::<T>(flow_dir)?;
         let actual_flow_dir = FlowDirection {
             ck: Direction::from_value(solution.m_dot_ck),
@@ -45,6 +49,7 @@ struct System {
 }
 
 impl System {
+    /// Create a new `System`
     fn new(inputs: Inputs) -> Self {
         let Inputs {
             pres,
@@ -68,62 +73,62 @@ impl System {
         let h_exp_norm = exp.enth / enth_norm;
 
         // Mass balance on compression space
-        a[(1, 1)] = 1.0; // m_dot_ck
-        a[(1, 8)] = comp.vol * comp.dd_dT_P; // dTc_dt
-        a[(1, 10)] = comp.vol * comp.dd_dP_T; // dP_dt
-        b[(1)] = -comp.dens * comp.dV_dt;
+        a[(0, 0)] = 1.0; // m_dot_ck
+        a[(0, 7)] = comp.vol * comp.dd_dT_P; // dTc_dt
+        a[(0, 9)] = comp.vol * comp.dd_dP_T; // dP_dt
+        b[(0)] = -comp.dens * comp.dV_dt;
 
         // Energy balance on compression space
-        // a[(2, 1)] = h_ck_norm; // m_dot_ck
-        a[(2, 8)] = comp.vol * (comp.dens * comp.du_dT_P + comp.inte * comp.dd_dT_P) / enth_norm; // dTc_dt
-        a[(2, 10)] = comp.vol * (comp.dens * comp.du_dP_T + comp.inte * comp.dd_dP_T) / enth_norm; // dP_dt
-        b[(2)] = (-(pres + comp.dens * comp.inte) * comp.dV_dt - comp.Q_dot) / enth_norm;
+        // a[(1, 0)] = h_ck_norm; // m_dot_ck (value is set by the `MatrixStencil` based on flow direction)
+        a[(1, 7)] = comp.vol * (comp.dens * comp.du_dT_P + comp.inte * comp.dd_dT_P) / enth_norm; // dTc_dt
+        a[(1, 9)] = comp.vol * (comp.dens * comp.du_dP_T + comp.inte * comp.dd_dP_T) / enth_norm; // dP_dt
+        b[(1)] = (-(pres + comp.dens * comp.inte) * comp.dV_dt - comp.Q_dot) / enth_norm;
 
         // Mass balance on cold heat exchanger
-        a[(3, 1)] = -1.0; // m_dot_ck
-        a[(3, 2)] = 1.0; // m_dot_kr
-        a[(3, 10)] = chx.vol * chx.dd_dP_T; // dP_dt
+        a[(2, 0)] = -1.0; // m_dot_ck
+        a[(2, 1)] = 1.0; // m_dot_kr
+        a[(2, 9)] = chx.vol * chx.dd_dP_T; // dP_dt
 
         // Energy balance on cold heat exchanger
-        // a[(4, 1)] = -h_ck_norm; // m_dot_ck
-        // a[(4, 2)] = h_kr_norm; // m_dot_kr
-        a[(4, 5)] = 1.0 / enth_norm; // Q_dot_k
-        a[(4, 10)] = chx.vol * (chx.dens * chx.du_dP_T + chx.inte * chx.dd_dP_T) / enth_norm; // dP_dt
+        // a[(3, 0)] = -h_ck_norm; // m_dot_ck
+        // a[(3, 1)] = h_kr_norm; // m_dot_kr
+        a[(3, 4)] = 1.0 / enth_norm; // Q_dot_k
+        a[(3, 9)] = chx.vol * (chx.dens * chx.du_dP_T + chx.inte * chx.dd_dP_T) / enth_norm; // dP_dt
 
         // Mass balance on regenerator
-        a[(5, 2)] = -1.0; // m_dot_kr
-        a[(5, 3)] = 1.0; // m_dot_rl
-        a[(5, 10)] = regen.vol * regen.dd_dP_T; // dP_dt
+        a[(4, 1)] = -1.0; // m_dot_kr
+        a[(4, 2)] = 1.0; // m_dot_rl
+        a[(4, 9)] = regen.vol * regen.dd_dP_T; // dP_dt
 
         // Energy balance on regenerator
-        // a[(6, 2)] = -h_kr_norm; // m_dot_kr
-        // a[(6, 3)] = h_rl_norm; // m_dot_rl
-        a[(6, 6)] = 1.0 / enth_norm; // Q_dot_r
-        a[(6, 10)] =
+        // a[(5, 1)] = -h_kr_norm; // m_dot_kr
+        // a[(5, 2)] = h_rl_norm; // m_dot_rl
+        a[(5, 5)] = 1.0 / enth_norm; // Q_dot_r
+        a[(5, 9)] =
             regen.vol * (regen.dens * regen.du_dP_T + regen.inte * regen.dd_dP_T) / enth_norm; // dP_dt
 
         // Mass balance on hot heat exchanger
-        a[(7, 3)] = -1.0; // m_dot_rl
-        a[(7, 4)] = 1.0; // m_dot_le
-        a[(7, 10)] = hhx.vol * hhx.dd_dP_T; // dP_dt
+        a[(6, 2)] = -1.0; // m_dot_rl
+        a[(6, 3)] = 1.0; // m_dot_le
+        a[(6, 9)] = hhx.vol * hhx.dd_dP_T; // dP_dt
 
         // Energy balance on hot heat exchanger
-        // a[(8, 3)] = -h_rl_norm; // m_dot_rl
-        // a[(8, 4)] = h_le_norm; // m_dot_le
-        a[(8, 7)] = -1.0 / enth_norm; // Q_dot_l
-        a[(8, 10)] = hhx.vol * (hhx.dens * hhx.du_dP_T + hhx.inte * hhx.dd_dP_T) / enth_norm; // dP_dt
+        // a[(7, 2)] = -h_rl_norm; // m_dot_rl
+        // a[(7, 3)] = h_le_norm; // m_dot_le
+        a[(7, 6)] = -1.0 / enth_norm; // Q_dot_l
+        a[(7, 9)] = hhx.vol * (hhx.dens * hhx.du_dP_T + hhx.inte * hhx.dd_dP_T) / enth_norm; // dP_dt
 
         // Mass balance on expansion space
-        a[(9, 4)] = -1.0; // m_dot_le
-        a[(9, 9)] = exp.vol * exp.dd_dT_P; // dTe_dt
-        a[(9, 10)] = exp.vol * exp.dd_dP_T; // dP_dt
-        b[(9)] = -exp.dens * exp.dV_dt;
+        a[(8, 3)] = -1.0; // m_dot_le
+        a[(8, 8)] = exp.vol * exp.dd_dT_P; // dTe_dt
+        a[(8, 9)] = exp.vol * exp.dd_dP_T; // dP_dt
+        b[(8)] = -exp.dens * exp.dV_dt;
 
         // Energy balance on expansion space
-        // a[(10, 4)] = -h_le_norm; // m_dot_le
-        a[(10, 9)] = exp.vol * (exp.dens * exp.du_dT_P + exp.inte * exp.dd_dT_P) / enth_norm; // dTe_dt
-        a[(10, 10)] = exp.vol * (exp.dens * exp.du_dP_T + exp.inte * exp.dd_dP_T) / enth_norm; // dP_dt
-        b[(10)] = (-(pres + exp.dens * exp.inte) * exp.dV_dt - exp.Q_dot) / enth_norm;
+        // a[(9, 3)] = -h_le_norm; // m_dot_le
+        a[(9, 8)] = exp.vol * (exp.dens * exp.du_dT_P + exp.inte * exp.dd_dT_P) / enth_norm; // dTe_dt
+        a[(9, 9)] = exp.vol * (exp.dens * exp.du_dP_T + exp.inte * exp.dd_dP_T) / enth_norm; // dP_dt
+        b[(9)] = (-(pres + exp.dens * exp.inte) * exp.dV_dt - exp.Q_dot) / enth_norm;
 
         Self {
             stencil: MatrixStencil {
@@ -139,6 +144,7 @@ impl System {
         }
     }
 
+    /// Solve the system of equations
     fn solve<T: MatrixDecomposition>(&self, flow_dir: FlowDirection) -> Result<Solution> {
         let a = self.stencil.create_matrix(flow_dir);
         let x = T::solve(a, &self.b)?;
@@ -154,6 +160,43 @@ impl System {
             dTe_dt: x[8],
             dP_dt: x[9],
         })
+    }
+}
+
+struct MatrixStencil {
+    a: Matrix,
+    h_comp_norm: f64,
+    h_chx_norm: f64,
+    h_regen_cold_norm: f64,
+    h_regen_hot_norm: f64,
+    h_hhx_norm: f64,
+    h_exp_norm: f64,
+}
+
+impl MatrixStencil {
+    /// Create an `A` matrix based on the provided flow directions
+    fn create_matrix(&self, flow_dir: FlowDirection) -> Matrix {
+        // Determine enthalpies at the volume interfaces
+        let h_ck_norm = flow_dir.ck.select(self.h_comp_norm, self.h_chx_norm);
+        let h_kr_norm = flow_dir.kr.select(self.h_chx_norm, self.h_regen_cold_norm);
+        let h_rl_norm = flow_dir.rl.select(self.h_regen_hot_norm, self.h_hhx_norm);
+        let h_le_norm = flow_dir.le.select(self.h_hhx_norm, self.h_exp_norm);
+
+        // Set the enthalpy entries in the matrix
+        let mut a = self.a; // `SMatrix` is copy
+        a[(1, 0)] = h_ck_norm;
+        a[(3, 0)] = -h_ck_norm;
+
+        a[(3, 1)] = h_kr_norm;
+        a[(5, 1)] = -h_kr_norm;
+
+        a[(5, 2)] = h_rl_norm;
+        a[(7, 2)] = -h_rl_norm;
+
+        a[(7, 3)] = h_le_norm;
+        a[(9, 3)] = -h_le_norm;
+
+        a
     }
 }
 
@@ -190,51 +233,13 @@ impl MatrixDecomposition for Cholesky {
     }
 }
 
-pub struct SVD;
-impl MatrixDecomposition for SVD {
+pub struct SvdDefault;
+impl MatrixDecomposition for SvdDefault {
     fn solve(a: Matrix, b: &Vector) -> Result<Vector> {
-        let eps = 1e-9; // TODO: look into what value makes sense here
+        let eps = 1e-12;
         a.svd_unordered(true, true)
             .solve(b, eps)
             .map_err(|_| anyhow!("unable to solve matrix with SVD decomposition"))
-    }
-}
-
-/// A thing that can generate the `A` matrix
-struct MatrixStencil {
-    a: Matrix,
-    h_comp_norm: f64,
-    h_chx_norm: f64,
-    h_regen_cold_norm: f64,
-    h_regen_hot_norm: f64,
-    h_hhx_norm: f64,
-    h_exp_norm: f64,
-}
-
-impl MatrixStencil {
-    /// Create an `A` matrix based on the provided flow directions
-    fn create_matrix(&self, flow_dir: FlowDirection) -> Matrix {
-        // Determine enthalpies at the volume interfaces
-        let h_ck_norm = flow_dir.ck.select(self.h_comp_norm, self.h_chx_norm);
-        let h_kr_norm = flow_dir.kr.select(self.h_chx_norm, self.h_regen_cold_norm);
-        let h_rl_norm = flow_dir.rl.select(self.h_regen_hot_norm, self.h_hhx_norm);
-        let h_le_norm = flow_dir.le.select(self.h_hhx_norm, self.h_exp_norm);
-
-        // Set the enthalpy entries in the matrix
-        let mut a = self.a; // `SMatrix` is copy
-        a[(2, 1)] = h_ck_norm;
-        a[(4, 1)] = -h_ck_norm;
-
-        a[(4, 2)] = h_kr_norm;
-        a[(6, 2)] = -h_kr_norm;
-
-        a[(6, 3)] = h_rl_norm;
-        a[(8, 3)] = -h_rl_norm;
-
-        a[(8, 4)] = h_le_norm;
-        a[(10, 4)] = -h_le_norm;
-
-        a
     }
 }
 
@@ -288,6 +293,7 @@ impl Default for FlowDirection {
     }
 }
 
+#[derive(Debug, Clone, Copy, Deserialize)]
 pub struct Inputs {
     pres: f64,
     enth_norm: f64,
@@ -299,6 +305,7 @@ pub struct Inputs {
 }
 
 #[allow(non_snake_case)]
+#[derive(Debug, Clone, Copy, Deserialize)]
 pub struct WorkingSpaceInputs {
     vol: f64,
     dens: f64,
@@ -313,6 +320,7 @@ pub struct WorkingSpaceInputs {
 }
 
 #[allow(non_snake_case)]
+#[derive(Debug, Clone, Copy, Deserialize)]
 pub struct HeatExchangerInputs {
     vol: f64,
     dens: f64,
@@ -323,6 +331,7 @@ pub struct HeatExchangerInputs {
 }
 
 #[allow(non_snake_case)]
+#[derive(Debug, Clone, Copy, Deserialize)]
 pub struct RegeneratorInputs {
     vol: f64,
     dens: f64,
@@ -334,6 +343,7 @@ pub struct RegeneratorInputs {
 }
 
 #[allow(non_snake_case)]
+#[derive(Debug, Serialize)]
 pub struct Solution {
     pub m_dot_ck: f64,
     pub m_dot_kr: f64,
@@ -345,4 +355,76 @@ pub struct Solution {
     pub dTc_dt: f64,
     pub dTe_dt: f64,
     pub dP_dt: f64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{fs, path::PathBuf};
+
+    /// Read a file containing test inputs
+    fn read_test_inputs(filename: &str) -> String {
+        let file: PathBuf = [
+            env!("CARGO_MANIFEST_DIR"),
+            "src",
+            "state_equations",
+            "test_inputs",
+            filename,
+        ]
+        .iter()
+        .collect();
+        fs::read_to_string(file).expect("test inputs file is missing")
+    }
+
+    #[test]
+    fn test_typical_ideal_gas_hydrogen_values() {
+        let inputs = read_test_inputs("ideal_gas_hydrogen.json");
+        let inputs: Inputs = serde_json::from_str(&inputs).expect("test inputs file is invalid");
+        let flow_dir = FlowDirection::default();
+
+        let lu_solution = solve::<LU>(inputs, flow_dir).expect("should solve");
+        insta::assert_yaml_snapshot!(lu_solution, @r###"
+        ---
+        m_dot_ck: -0.0369671135868011
+        m_dot_kr: -0.04739861686084307
+        m_dot_rl: -0.06366524032668251
+        m_dot_le: -0.07450887512267486
+        Q_dot_k: 11687.524503992354
+        Q_dot_r: 436791.3029835215
+        Q_dot_l: 83208.74490054866
+        dTc_dt: 2845.6263552639434
+        dTe_dt: 31166.869984699082
+        dP_dt: 390423950.31296676
+        "###);
+
+        let qr_solution = solve::<QR>(inputs, flow_dir).expect("should solve");
+        insta::assert_yaml_snapshot!(qr_solution, @r###"
+        ---
+        m_dot_ck: -0.03696711358680108
+        m_dot_kr: -0.04739861686084307
+        m_dot_rl: -0.06366524032668251
+        m_dot_le: -0.07450887512267484
+        Q_dot_k: 11687.524503992556
+        Q_dot_r: 436791.3029835213
+        Q_dot_l: 83208.74490054866
+        dTc_dt: 2845.6263552639507
+        dTe_dt: 31166.869984699046
+        dP_dt: 390423950.3129669
+        "###);
+
+        let svd_solution = solve::<SvdDefault>(inputs, flow_dir).expect("should solve");
+        insta::assert_yaml_snapshot!(svd_solution, @r###"
+        ---
+        m_dot_ck: -0.03696711358657141
+        m_dot_kr: -0.047398616860491946
+        m_dot_rl: -0.06366524032648578
+        m_dot_le: -0.07450887512248028
+        Q_dot_k: 11687.524503991895
+        Q_dot_r: 436791.3029835225
+        Q_dot_l: 83208.74490054886
+        dTc_dt: 2845.626355263992
+        dTe_dt: 31166.86998469886
+        dP_dt: 390423950.3129672
+        "###);
+    }
 }

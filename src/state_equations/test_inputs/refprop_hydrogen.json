@@ -1,0 +1,53 @@
+{
+  "pres": 10e6,
+  "enth_norm": 5.7448e6,
+  "comp": {
+    "vol": 1.596e-4,
+    "dens": 7.6256,
+    "inte": 6.4867e5,
+    "enth": 9.1201e5,
+    "dd_dP_T": 7.7256e-7,
+    "dd_dT_P": -0.0246,
+    "du_dP_T": 0,
+    "du_dT_P": 1.0217e4,
+    "dV_dt": 0,
+    "Q_dot": 0
+  },
+  "chx": {
+    "vol": 4e-5,
+    "dens": 6.6796,
+    "inte": 1.1523e6,
+    "enth": 1.6184e6,
+    "dd_dP_T": 6.6796e-7,
+    "du_dP_T": 0
+  },
+  "regen": {
+    "vol": 1e-4,
+    "dens": 4.1664,
+    "inte": 3.4162e6,
+    "enth_cold": 1.7624e6,
+    "enth_hot": 8.8429e6,
+    "dd_dP_T": 4.1664e-7,
+    "du_dP_T": 0
+  },
+  "hhx": {
+    "vol": 1e-4,
+    "dens": 2.7774,
+    "inte": 6.4763e6,
+    "enth": 9.0457e6,
+    "dd_dP_T": 2.7774e-7,
+    "du_dP_T": 0
+  },
+  "exp": {
+    "vol": 7.32e-5,
+    "dens": 3.1412,
+    "inte": 5.4025e6,
+    "enth": 7.555e6,
+    "dd_dP_T": 3.1412e-7,
+    "dd_dT_P": -0.0041,
+    "du_dP_T": 0,
+    "du_dT_P": 1.0552e4,
+    "dV_dt": -0.0236,
+    "Q_dot": 0
+  }
+}
