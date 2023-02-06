@@ -1,3 +1,5 @@
+#![allow(dead_code)] // TODO: remove this when we have a public interface
+
 mod chx;
 mod engine;
 mod fluid;
