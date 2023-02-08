@@ -3,14 +3,19 @@ mod solver;
 mod types;
 
 pub use self::{
-    integrator::{integrate, IntegrationOptions},
-    solver::{MatrixDecomposition, SvdDefault, LU, QR},
-    types::{Conditions, Inputs, Time},
+    integrator::{Integration, IntegrationOptions},
+    solver::{SvdDefault, LU, QR},
+    types::{Conditions, Inputs, StateValues, Time},
 };
 
-pub trait StateEquations {
+pub trait Cycle {
+    type Solver: solver::MatrixDecomposition;
+
     /// Calculate the inputs to the state equations
     fn calculate_inputs(&self, time: Time, conditions: Conditions) -> Inputs;
+
+    /// Return the period in seconds for the cycle
+    fn period(&self) -> Time;
 }
 
 #[cfg(test)]
@@ -46,25 +51,35 @@ mod tests {
         }
     }
 
-    impl StateEquations for TestEngine {
-        fn calculate_inputs(&self, _time: Time, _conditionss: Conditions) -> Inputs {
-            self.inputs
+    impl Cycle for TestEngine {
+        type Solver = LU;
+
+        fn calculate_inputs(&self, _time: Time, _conditions: Conditions) -> Inputs {
+            self.inputs.clone()
+        }
+
+        fn period(&self) -> Time {
+            0.5
         }
     }
 
     #[test]
     fn integrates_to_final_time() {
         let engine = TestEngine::from_file("ideal_gas_hydrogen.json");
-        let period = 0.5;
         let initial_conditions = Conditions {
             P: 10e6,
             T_c: 400.0,
             T_e: 600.0,
         };
-        let options = IntegrationOptions::from_step_size(0.01);
-        let values = integrate::<LU, _>(&engine, period, initial_conditions, options)
+        let options = IntegrationOptions::default();
+        let integration = Integration::try_from(&engine, initial_conditions, options)
             .expect("integration should work");
-        let final_values = &values.last().expect("vector should not be empty");
-        assert_relative_eq!(final_values.time, period, epsilon = 1e-12);
+
+        assert!(
+            !integration.is_converged(),
+            "integration should not be converged"
+        );
+
+        assert_relative_eq!(integration.final_time(), engine.period(), epsilon = 1e-12);
     }
 }
