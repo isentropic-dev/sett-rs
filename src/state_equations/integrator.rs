@@ -13,7 +13,6 @@ use super::{
 pub struct Integration<'a, T: Cycle> {
     cycle: &'a T,
     points: Vec<Point>,
-    conv_tol: Tolerance,
 }
 
 impl<'a, T: Cycle> Integration<'a, T> {
@@ -21,14 +20,15 @@ impl<'a, T: Cycle> Integration<'a, T> {
     pub fn try_from(
         cycle: &'a T,
         initial_conditions: Conditions,
-        options: IntegrationOptions,
+        num_points: u32,
+        tol: OdeTolerance,
     ) -> Result<Self> {
         let state = IntegrationState {
             cycle,
             last_flow_dir: RefCell::new(FlowDirection::default()),
         };
         let period = cycle.period();
-        let dx = period / f64::from(options.num_points - 1);
+        let dx = period / f64::from(num_points - 1);
         let y0 = StateVariables::new(
             initial_conditions.P,
             initial_conditions.T_c,
@@ -40,12 +40,12 @@ impl<'a, T: Cycle> Integration<'a, T> {
             period + dx, // just past t_final
             dx,
             y0,
-            options.ode_tol.rel,
-            options.ode_tol.abs,
+            tol.rel,
+            tol.abs,
         );
         stepper.integrate()?;
 
-        let mut points = Vec::with_capacity(options.num_points as usize);
+        let mut points = Vec::with_capacity(num_points as usize);
         for (&time, variables) in stepper.x_out().iter().zip(stepper.y_out().iter()) {
             let conditions = Conditions {
                 P: variables[0],
@@ -55,11 +55,7 @@ impl<'a, T: Cycle> Integration<'a, T> {
             points.push(Point { time, conditions });
         }
 
-        Ok(Self {
-            cycle,
-            points,
-            conv_tol: options.conv_tol,
-        })
+        Ok(Self { cycle, points })
     }
 
     /// Check if the integration over the cycle is converged
@@ -69,16 +65,11 @@ impl<'a, T: Cycle> Integration<'a, T> {
     /// the cycle are equal to their respective initial conditions.  Only
     /// the temperatures are checked because pressure must converge due to
     /// conservation of mass and energy in the state equations.
-    pub fn is_converged(&self) -> bool {
+    pub fn is_converged(&self, tol: ConvergenceTolerance) -> bool {
         let first_point = self.points.first().unwrap(); // `self.points` is never empty
         let last_point = self.points.last().unwrap();
-        let is_comp_ok = self
-            .conv_tol
-            .is_satisfied(first_point.conditions.T_c, last_point.conditions.T_c);
-        let is_exp_ok = self
-            .conv_tol
-            .is_satisfied(first_point.conditions.T_e, last_point.conditions.T_e);
-        is_comp_ok && is_exp_ok
+        tol.is_converged(first_point.conditions.T_c, last_point.conditions.T_c)
+            && tol.is_converged(first_point.conditions.T_e, last_point.conditions.T_e)
     }
 
     /// Return the final time of the integration
@@ -87,13 +78,15 @@ impl<'a, T: Cycle> Integration<'a, T> {
         last_point.time
     }
 
-    /// Return all state equation values
-    pub fn state_values(&self) -> Vec<StateValues> {
+    /// Calculate state equation values at each point
+    ///
+    /// This function consumes the `Integration`.
+    pub fn into_state_values(self) -> Vec<StateValues> {
         let mut flow_dir = FlowDirection::default();
         self.points
-            .iter()
+            .into_iter()
             .map(|point| {
-                let Point { time, conditions } = *point;
+                let Point { time, conditions } = point;
                 let inputs = self.cycle.calculate_inputs(time, conditions);
                 let solution = solve::<T::Solver>(inputs, flow_dir)
                     .expect("TODO: what do we do if this fails?");
@@ -108,61 +101,36 @@ impl<'a, T: Cycle> Integration<'a, T> {
     }
 }
 
-/// Options that affect the `Integration` process
-pub struct IntegrationOptions {
-    num_points: u32,
-    ode_tol: Tolerance,
-    conv_tol: Tolerance,
-}
-
-impl IntegrationOptions {
-    /// Set the number of points used for time discretization
-    fn with_num_points(mut self, num_points: u32) -> Self {
-        assert!(num_points >= 2);
-        self.num_points = num_points;
-        self
-    }
-
-    /// Set the ODE tolerance
-    fn with_ode_tol(mut self, ode_tol: Tolerance) -> Self {
-        self.ode_tol = ode_tol;
-        self
-    }
-
-    /// Set the convergence tolerance
-    fn with_conv_tol(mut self, conv_tol: Tolerance) -> Self {
-        self.conv_tol = conv_tol;
-        self
-    }
-}
-
-impl Default for IntegrationOptions {
-    fn default() -> Self {
-        Self {
-            num_points: 21,
-            ode_tol: Tolerance {
-                abs: 1e-6,
-                rel: 1e-6,
-            },
-            conv_tol: Tolerance {
-                abs: 1e-6,
-                rel: 1e-6,
-            },
-        }
-    }
-}
-
-struct Tolerance {
+/// Tolerances used by the ODE integrator
+#[derive(Debug, Clone, Copy)]
+pub struct OdeTolerance {
     abs: f64,
     rel: f64,
 }
 
-impl Tolerance {
-    /// Return `true` if the error between `a` and `b` is less than the tolerance
-    fn is_satisfied(&self, a: f64, b: f64) -> bool {
-        let abs_err = a - b;
-        let rel_err = abs_err / a;
-        abs_err.abs() < self.abs && rel_err.abs() < self.rel
+impl OdeTolerance {
+    pub fn new(abs: f64, rel: f64) -> Self {
+        Self { abs, rel }
+    }
+}
+
+/// Tolerances related to convergence between subsequent values
+#[derive(Debug, Clone, Copy)]
+pub struct ConvergenceTolerance {
+    abs: f64,
+    rel: f64,
+}
+
+impl ConvergenceTolerance {
+    pub fn new(abs: f64, rel: f64) -> Self {
+        Self { abs, rel }
+    }
+
+    /// Return `true` if the change from `old` to `new` is sufficiently small
+    fn is_converged(&self, old: f64, new: f64) -> bool {
+        let abs_change = new - old;
+        let rel_change = abs_change / old;
+        abs_change.abs() < self.abs && rel_change.abs() < self.rel
     }
 }
 

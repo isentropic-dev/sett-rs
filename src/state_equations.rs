@@ -3,7 +3,7 @@ mod solver;
 mod types;
 
 pub use self::{
-    integrator::{Integration, IntegrationOptions},
+    integrator::{ConvergenceTolerance, Integration, OdeTolerance},
     solver::{SvdDefault, LU, QR},
     types::{Conditions, Inputs, StateValues, Time},
 };
@@ -71,12 +71,14 @@ mod tests {
             T_c: 400.0,
             T_e: 600.0,
         };
-        let options = IntegrationOptions::default();
-        let integration = Integration::try_from(&engine, initial_conditions, options)
+        let num_points = 21;
+        let ode_tol = OdeTolerance::new(1e-4, 1e-4);
+        let integration = Integration::try_from(&engine, initial_conditions, num_points, ode_tol)
             .expect("integration should work");
 
+        let conv_tol = ConvergenceTolerance::new(1e-4, 1e-4);
         assert!(
-            !integration.is_converged(),
+            !integration.is_converged(conv_tol),
             "integration should not be converged"
         );
 
