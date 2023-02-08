@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, Deserialize)]
+/// Inputs required to generate the `Ax=b` system of state equations
+#[derive(Debug, Clone, Deserialize)]
 pub struct Inputs {
     pub pres: f64,
     pub enth_norm: f64,
@@ -11,8 +12,9 @@ pub struct Inputs {
     pub exp: WorkingSpaceInputs,
 }
 
+/// State equation inputs related to the working spaces
 #[allow(non_snake_case)]
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct WorkingSpaceInputs {
     pub vol: f64,
     pub dens: f64,
@@ -26,8 +28,9 @@ pub struct WorkingSpaceInputs {
     pub Q_dot: f64,
 }
 
+/// State equation inputs related to the heat exchangers
 #[allow(non_snake_case)]
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct HeatExchangerInputs {
     pub vol: f64,
     pub dens: f64,
@@ -37,8 +40,9 @@ pub struct HeatExchangerInputs {
     pub du_dP_T: f64,
 }
 
+/// State equation inputs related to the regenerator
 #[allow(non_snake_case)]
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct RegeneratorInputs {
     pub vol: f64,
     pub dens: f64,
@@ -49,6 +53,7 @@ pub struct RegeneratorInputs {
     pub du_dP_T: f64,
 }
 
+/// Solution to the state equations
 #[allow(non_snake_case)]
 #[derive(Debug, Clone, Serialize)]
 pub struct Solution {
@@ -64,10 +69,10 @@ pub struct Solution {
     pub dP_dt: f64,
 }
 
-/// The elapsed time in seconds since the start of the cycle
+/// Elapsed time in seconds since the start of the cycle
 pub type Time = f64;
 
-/// The conditions within the engine
+/// Conditions within the cycle
 ///
 /// `P`   -- pressure (Pa) in all control volumes
 /// `T_c` -- temperature (K) in the compression space
@@ -80,15 +85,16 @@ pub struct Conditions {
     pub T_e: f64,
 }
 
-/// The state of the engine at a given time
+/// The conditions and solution within the cycle at a point in time
 #[derive(Debug, Clone, Serialize)]
-pub struct Values {
+pub struct StateValues {
     pub time: Time,
     pub conditions: Conditions,
     pub solution: Solution,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+/// A direction of mass flow
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) enum Direction {
     Positive,
     Negative,
@@ -110,7 +116,7 @@ impl Direction {
     /// Return a value based on the direction of `self`
     ///
     /// An average of the two values is returned if the direction is `Unknown`.
-    pub(super) fn select(&self, positive: f64, negative: f64) -> f64 {
+    pub(super) fn select(self, positive: f64, negative: f64) -> f64 {
         match self {
             Self::Positive => positive,
             Self::Negative => negative,
@@ -119,6 +125,18 @@ impl Direction {
     }
 }
 
+/// The direction of mass flow between each control volume
+///
+/// The abbreviations are:
+///   - `ck` compression space to cold heat exchanger
+///   - `kr` cold heat exchanger to regenerator
+///   - `rl` regenerator to hot heat exchanger
+///   - `le` hot heat exchanger to expansion space
+///
+/// Positive flow is from the first volume in the abbreviation to the second.
+/// For example, a `Direction::Positive` for `kr` means mass is flowing from
+/// the cold heat exhanger into the regenerator.  A `Direction::Negative` for
+/// `le` means flow is from the expansion space to the hot heat exhanger.
 #[derive(Clone, Copy, PartialEq)]
 pub(super) struct FlowDirection {
     pub(super) ck: Direction,
@@ -128,6 +146,7 @@ pub(super) struct FlowDirection {
 }
 
 impl FlowDirection {
+    /// Determine the flow directions from a `Solution`
     pub(super) fn from_solution(solution: &Solution) -> Self {
         Self {
             ck: Direction::from_value(solution.m_dot_ck),
