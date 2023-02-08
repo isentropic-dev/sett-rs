@@ -13,7 +13,7 @@ const ALLOWED_FLOW_UPDATES: usize = 3;
 ///
 /// This function is generic over the decomposition function used to solve `Ax=b`.
 ///
-/// Better documentation will be added (https://github.com/isentropic-dev/sett-rs/issues/9)
+/// Better documentation will be added per [issue](https://github.com/isentropic-dev/sett-rs/issues/9)
 pub(super) fn solve<T: MatrixDecomposition>(
     inputs: Inputs,
     flow_dir_hint: FlowDirection,
@@ -58,13 +58,15 @@ impl System {
         let mut a = Matrix::zeros();
         let mut b = Vector::zeros();
 
-        // Enthalpies are normalized to reduce the matrix condition number
-        let h_comp_norm = comp.enth / enth_norm;
-        let h_chx_norm = chx.enth / enth_norm;
-        let h_regen_cold_norm = regen.enth_cold / enth_norm;
-        let h_regen_hot_norm = regen.enth_hot / enth_norm;
-        let h_hhx_norm = hhx.enth / enth_norm;
-        let h_exp_norm = exp.enth / enth_norm;
+        // Build the `A` matrix
+        //
+        // Some terms in the matrix relate to the enthalpy flow between control
+        // volumes.  These values are set later by the `MatrixStencil` based
+        // on flow direction, but their locations in the matrix are included
+        // below as commented code.
+        //
+        // All terms derived from energy balances are normalized by the
+        // provided average enthalpy to reduce the matrix condition number.
 
         // Mass balance on compression space
         a[(0, 0)] = 1.0; // m_dot_ck
@@ -73,7 +75,7 @@ impl System {
         b[(0)] = -comp.dens * comp.dV_dt;
 
         // Energy balance on compression space
-        // a[(1, 0)] = h_ck_norm; // m_dot_ck (value is set by the `MatrixStencil` based on flow direction)
+        // a[(1, 0)] = h_ck_norm; // m_dot_ck
         a[(1, 7)] = comp.vol * (comp.dens * comp.du_dT_P + comp.inte * comp.dd_dT_P) / enth_norm; // dTc_dt
         a[(1, 9)] = comp.vol * (comp.dens * comp.du_dP_T + comp.inte * comp.dd_dP_T) / enth_norm; // dP_dt
         b[(1)] = (-(pres + comp.dens * comp.inte) * comp.dV_dt - comp.Q_dot) / enth_norm;
@@ -127,12 +129,12 @@ impl System {
         Self {
             stencil: MatrixStencil {
                 a,
-                h_comp_norm,
-                h_chx_norm,
-                h_regen_cold_norm,
-                h_regen_hot_norm,
-                h_hhx_norm,
-                h_exp_norm,
+                h_comp_norm: comp.enth / enth_norm,
+                h_chx_norm: chx.enth / enth_norm,
+                h_regen_cold_norm: regen.enth_cold / enth_norm,
+                h_regen_hot_norm: regen.enth_hot / enth_norm,
+                h_hhx_norm: hhx.enth / enth_norm,
+                h_exp_norm: exp.enth / enth_norm,
             },
             b,
         }
@@ -141,7 +143,7 @@ impl System {
     /// Solve the system of equations
     fn solve<T: MatrixDecomposition>(&self, flow_dir: FlowDirection) -> Result<Solution> {
         let a = self.stencil.create_matrix(flow_dir);
-        let x = T::solve(a, &self.b)?;
+        let x = T::solve(&a, &self.b)?;
         Ok(Solution {
             m_dot_ck: x[0],
             m_dot_kr: x[1],
@@ -195,12 +197,12 @@ impl MatrixStencil {
 }
 
 pub trait MatrixDecomposition {
-    fn solve(a: Matrix, b: &Vector) -> Result<Vector>;
+    fn solve(a: &Matrix, b: &Vector) -> Result<Vector>;
 }
 
 pub struct QR;
 impl MatrixDecomposition for QR {
-    fn solve(a: Matrix, b: &Vector) -> Result<Vector> {
+    fn solve(a: &Matrix, b: &Vector) -> Result<Vector> {
         a.qr()
             .solve(b)
             .context("unable to solve matrix with QR decompositon")
@@ -209,7 +211,7 @@ impl MatrixDecomposition for QR {
 
 pub struct LU;
 impl MatrixDecomposition for LU {
-    fn solve(a: Matrix, b: &Vector) -> Result<Vector> {
+    fn solve(a: &Matrix, b: &Vector) -> Result<Vector> {
         a.lu()
             .solve(b)
             .context("unable to solve matrix with LU decomposition")
@@ -218,7 +220,7 @@ impl MatrixDecomposition for LU {
 
 pub struct Cholesky;
 impl MatrixDecomposition for Cholesky {
-    fn solve(a: Matrix, b: &Vector) -> Result<Vector> {
+    fn solve(a: &Matrix, b: &Vector) -> Result<Vector> {
         let decomp = a
             .cholesky()
             .context("unable to solve matrix with Cholesky decomposition")?;
@@ -229,7 +231,7 @@ impl MatrixDecomposition for Cholesky {
 
 pub struct SvdDefault;
 impl MatrixDecomposition for SvdDefault {
-    fn solve(a: Matrix, b: &Vector) -> Result<Vector> {
+    fn solve(a: &Matrix, b: &Vector) -> Result<Vector> {
         let eps = 1e-12;
         a.svd_unordered(true, true)
             .solve(b, eps)
@@ -248,7 +250,7 @@ mod tests {
         let inputs: Inputs = serde_json::from_str(&inputs).expect("test inputs file is invalid");
         let flow_dir = FlowDirection::default();
 
-        let lu_solution = solve::<LU>(inputs, flow_dir).expect("should solve");
+        let lu_solution = solve::<LU>(inputs.clone(), flow_dir).expect("should solve");
         insta::assert_yaml_snapshot!(lu_solution, @r###"
         ---
         m_dot_ck: -0.0369671135868011
@@ -263,7 +265,7 @@ mod tests {
         dP_dt: 390423950.31296676
         "###);
 
-        let qr_solution = solve::<QR>(inputs, flow_dir).expect("should solve");
+        let qr_solution = solve::<QR>(inputs.clone(), flow_dir).expect("should solve");
         insta::assert_yaml_snapshot!(qr_solution, @r###"
         ---
         m_dot_ck: -0.03696711358680108
@@ -293,13 +295,14 @@ mod tests {
         dP_dt: 390423950.3129672
         "###);
     }
+
     #[test]
     fn test_typical_refprop_hydrogen_values() {
         let inputs = read_test_inputs("refprop_hydrogen.json");
         let inputs: Inputs = serde_json::from_str(&inputs).expect("test inputs file is invalid");
         let flow_dir = FlowDirection::default();
 
-        let lu_solution = solve::<LU>(inputs, flow_dir).expect("should solve");
+        let lu_solution = solve::<LU>(inputs.clone(), flow_dir).expect("should solve");
         insta::assert_yaml_snapshot!(lu_solution, @r###"
         ---
         m_dot_ck: -0.028538301905757048
@@ -314,7 +317,7 @@ mod tests {
         dP_dt: 417493124.93544215
         "###);
 
-        let qr_solution = solve::<QR>(inputs, flow_dir).expect("should solve");
+        let qr_solution = solve::<QR>(inputs.clone(), flow_dir).expect("should solve");
         insta::assert_yaml_snapshot!(qr_solution, @r###"
         ---
         m_dot_ck: -0.028538301905757044
