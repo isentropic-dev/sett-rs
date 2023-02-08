@@ -84,4 +84,23 @@ mod tests {
 
         assert_relative_eq!(integration.final_time(), engine.period(), epsilon = 1e-12);
     }
+
+    #[test]
+    fn calculates_state_values() {
+        let engine = TestEngine::from_file("refprop_hydrogen.json");
+        let initial_conditions = Conditions {
+            P: 10e6,
+            T_c: 300.0,
+            T_e: 500.0,
+        };
+        let num_points = 101;
+        let ode_tol = OdeTolerance::new(1e-6, 1e-6);
+        let integration = Integration::try_from(&engine, initial_conditions, num_points, ode_tol)
+            .expect("integration should work");
+
+        assert_relative_eq!(integration.final_time(), engine.period(), epsilon = 1e-12);
+
+        let values = integration.into_state_values();
+        assert_eq!(values.len(), 101);
+    }
 }
