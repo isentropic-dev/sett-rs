@@ -5,6 +5,6 @@ mod chx;
 mod fluid;
 mod hhx;
 mod regen;
-// mod state_equations;
+mod state_equations;
 mod types;
 mod ws;
