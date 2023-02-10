@@ -1,29 +1,27 @@
-use std::fmt;
+use crate::types::ParasiticPower;
 
-use crate::ParasiticPower;
+use super::{ColdHeatExchanger, State};
 
 pub struct Mod2 {}
 
-impl super::ColdHeatExchanger for Mod2 {
-    fn volume(&self) -> f64 {
+impl ColdHeatExchanger for Mod2 {
+    fn volume(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn approach(&self) -> f64 {
+    fn approach(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn pressure_drop(&self) -> &[f64] {
+    fn hydraulic_resistance(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn parasitics(&self) -> ParasiticPower {
+    fn parasitics(&self, _state: &State) -> ParasiticPower {
         todo!()
     }
-}
 
-impl fmt::Display for Mod2 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "NASA Mod II cold heat exchanger")
+    fn report(&self, _state: &State) -> String {
+        "NASA Mod II cold heat exchanger".to_string()
     }
 }
