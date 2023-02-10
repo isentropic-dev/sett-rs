@@ -4,7 +4,7 @@ mod chx;
 // mod engine;
 mod fluid;
 mod hhx;
-// mod regen;
+mod regen;
 // mod state_equations;
 mod types;
 // mod ws;
