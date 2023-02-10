@@ -1,29 +1,25 @@
-use std::fmt;
-
-use crate::ParasiticPower;
+use super::{HotHeatExchanger, State};
 
 pub struct FixedConductance {}
 
-impl super::HotHeatExchanger for FixedConductance {
-    fn volume(&self) -> f64 {
+impl HotHeatExchanger for FixedConductance {
+    fn volume(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn approach(&self) -> f64 {
+    fn approach(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn pressure_drop(&self) -> &[f64] {
+    fn hydraulic_resistance(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn parasitics(&self) -> ParasiticPower {
+    fn parasitics(&self, _state: &State) -> crate::types::ParasiticPower {
         todo!()
     }
-}
 
-impl fmt::Display for FixedConductance {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "Fixed conductance hot heat exchanger")
+    fn report(&self, _state: &State) -> String {
+        "Fixed conductance hot heat exchanger".to_string()
     }
 }

@@ -1,5 +1,3 @@
-use std::fmt;
-
 use crate::{chx, fluid, hhx, regen, ws};
 
 /// Represents a Stirling engine
@@ -11,21 +9,27 @@ pub struct Engine {
     pub hhx: Box<dyn hhx::HotHeatExchanger>,
 }
 
-impl fmt::Display for Engine {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "An engine!")?;
-        writeln!(f, "---")?;
-        write!(f, "{}", self.fluid)?;
-        writeln!(f, "---")?;
-        write!(f, "{}", self.ws)?;
-        writeln!(f, "---")?;
-        write!(f, "{}", self.chx)?;
-        writeln!(f, "---")?;
-        write!(f, "{}", self.regen)?;
-        writeln!(f, "---")?;
-        write!(f, "{}", self.hhx)?;
-        writeln!(f, "---")
-    }
+impl Engine {
+    /// Create an `Engine` from components
+//    pub fn new(fluid: Box<dyn fluid::WorkingFluid>) -> Self {}
+    // todo: convert to report
+
+// impl fmt::Display for Engine {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         writeln!(f, "An engine!")?;
+//         writeln!(f, "---")?;
+//         write!(f, "{}", self.fluid)?;
+//         writeln!(f, "---")?;
+//         write!(f, "{}", self.ws)?;
+//         writeln!(f, "---")?;
+//         write!(f, "{}", self.chx)?;
+//         writeln!(f, "---")?;
+//         write!(f, "{}", self.regen)?;
+//         writeln!(f, "---")?;
+//         write!(f, "{}", self.hhx)?;
+//         writeln!(f, "---")
+//     }
+// }
 }
 
 #[cfg(test)]
@@ -46,6 +50,5 @@ mod tests {
             regen,
             hhx,
         };
-        println!("{engine}");
     }
 }
