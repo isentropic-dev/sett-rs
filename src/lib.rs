@@ -2,7 +2,7 @@
 
 mod chx;
 // mod engine;
-// mod fluid;
+mod fluid;
 mod hhx;
 // mod regen;
 // mod state_equations;
