@@ -243,11 +243,11 @@ mod tests {
         assert_eq!(
             vol_75.V_e,
             clear_vol_e + swept_vol_e,
-            "max expansion volume is at time zero"
+            "max expansion volume is 3/4 through cycle"
         );
         assert!(
             relative_eq!(vol_75.dVe_dt, 0.0),
-            "expansion piston is not moving at time zero"
+            "expansion piston is not moving 3/4 through cycle"
         );
     }
 }
