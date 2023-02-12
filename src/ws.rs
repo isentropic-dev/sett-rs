@@ -30,6 +30,7 @@ pub trait WorkingSpaces {
 
 /// Volumes (m^3) and their derivatives (m^3/s) of the two spaces
 #[allow(non_snake_case)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Volumes {
     pub V_c: f64,
     pub V_e: f64,
@@ -40,25 +41,53 @@ pub struct Volumes {
 /// Thermal resistance between the gas and the associated heat exchanger temperature
 ///
 /// Thermal resistance have units K/W.  An adiabatic condition is modeled
-/// using a thermal resistance value of `f64::INFINITY`.
+/// using a thermal resistance value of `f64::INFINITY`, which is the default
+/// assumption for both the compression and expansion spaces.
+#[derive(Debug, Clone, Copy)]
 pub struct ThermalResistance {
     pub comp: f64,
     pub exp: f64,
 }
 
-/// Parasitic power related to the two spaces
+impl Default for ThermalResistance {
+    fn default() -> Self {
+        Self {
+            comp: f64::INFINITY,
+            exp: f64::INFINITY,
+        }
+    }
+}
+
+/// Parasitic power (W) related to the two spaces
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Parasitics {
     pub comp: ParasiticPower,
     pub exp: ParasiticPower,
 }
 
 /// Information available to a component for calculating cycle parameters
+#[derive(Debug, Clone, Copy)]
 pub struct State {
     pub env: Environment,
     pub comp: Average,
     pub exp: Average,
 }
 
+impl State {
+    /// Create a `ws::State` from sink and source temperatures
+    pub fn new(sink: f64, source: f64) -> Self {
+        Self {
+            env: Environment {
+                sink_temp: sink,
+                source_temp: source,
+            },
+            comp: Average {},
+            exp: Average {},
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct Average {
     // as needed...
 }
