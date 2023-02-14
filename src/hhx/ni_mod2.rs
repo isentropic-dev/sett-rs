@@ -1,29 +1,27 @@
-use std::fmt;
+use crate::types::ParasiticPower;
 
-use crate::ParasiticPower;
+use super::{HotHeatExchanger, State};
 
 pub struct NuclearIsomerMod2 {}
 
-impl super::HotHeatExchanger for NuclearIsomerMod2 {
-    fn volume(&self) -> f64 {
+impl HotHeatExchanger for NuclearIsomerMod2 {
+    fn volume(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn approach(&self) -> f64 {
+    fn approach(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn pressure_drop(&self) -> &[f64] {
+    fn hydraulic_resistance(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn parasitics(&self) -> ParasiticPower {
+    fn parasitics(&self, _state: &State) -> ParasiticPower {
         todo!()
     }
-}
 
-impl fmt::Display for NuclearIsomerMod2 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "NASA Mod II hot heat exchanger with nuclear isomer")
+    fn report(&self, _state: &State) -> String {
+        "NASA Mod II hot heat exchanger with nuclear isomer".to_string()
     }
 }

@@ -1,51 +1,87 @@
-mod gpu3;
-mod mod2;
-mod rhombic_drive;
-mod sinusoidal_drive;
+// mod gpu3;
+// mod mod2;
+// mod rhombic_drive;
+pub mod sinusoidal_drive;
 
-pub use gpu3::GPU3;
-pub use mod2::Mod2;
-pub use rhombic_drive::RhombicDrive;
-pub use sinusoidal_drive::SinusoidalDrive;
+use crate::types::{Environment, ParasiticPower};
 
-use crate::ParasiticPower;
+pub trait WorkingSpaces {
+    /// Returns the frequency (Hz) of the engine
+    fn frequency(&self, state: &State) -> f64;
 
-pub trait WorkingSpaces: std::fmt::Display {
-    /// Returns the frequency of the engine
-    fn frequency(&self) -> f64;
-
-    /// Returns working space volumes and derivatives as a function of time `t`
-    fn spaces(&self, t: f64) -> Spaces;
+    /// Returns a function that provides `Volumes` as function of time
+    fn volumes(&self, state: &State) -> Box<dyn Fn(f64) -> Volumes>;
 
     /// Returns the thermal resistances of the compression and expansion spaces
-    fn thermal_resistance(&self) -> ThermalResistance;
+    fn thermal_resistance(&self, state: &State) -> ThermalResistance;
 
-    /// Returns the parasitic power associated with the heat exchanger
-    fn parasitics(&self) -> ParasiticPower;
+    /// Returns the parasitic power associated with the working spaces
+    fn parasitics(&self, state: &State) -> Parasitics;
 
-    /// Indicates whether the working spaces model is converged
-    ///
-    /// This trait method is optional and is typically only used for free
-    /// piston Stirling engine models.  For kinematic (direct-drive) Stirling
-    /// engines, the working spaces model is always converged and this trait
-    /// method is not required.
-    fn is_converged(&self) -> bool {
-        true
-    }
+    /// Returns information about the working spaces model
+    fn report(&self, state: &State) -> String;
+}
+
+/// Volumes (m^3) and their derivatives (m^3/s) of the two spaces
+#[allow(non_snake_case)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Volumes {
+    pub V_c: f64,
+    pub V_e: f64,
+    pub dVc_dt: f64,
+    pub dVe_dt: f64,
 }
 
 /// Thermal resistance between the gas and the associated heat exchanger temperature
+///
+/// Thermal resistance have units K/W.  An adiabatic condition is modeled
+/// using a thermal resistance value of `f64::INFINITY`, which is the default
+/// assumption for both the compression and expansion spaces.
+#[derive(Debug, Clone, Copy)]
 pub struct ThermalResistance {
-    pub compression: f64,
-    pub expansion: f64,
+    pub comp: f64,
+    pub exp: f64,
 }
 
-pub struct Spaces {
-    pub compression: Space,
-    pub expansion: Space,
+impl Default for ThermalResistance {
+    fn default() -> Self {
+        Self {
+            comp: f64::INFINITY,
+            exp: f64::INFINITY,
+        }
+    }
 }
 
-pub struct Space {
-    pub volume: f64,
-    pub derivative: f64,
+/// Parasitic power (W) related to the two spaces
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Parasitics {
+    pub comp: ParasiticPower,
+    pub exp: ParasiticPower,
+}
+
+/// Information available to a component for calculating cycle parameters
+#[derive(Debug, Clone, Copy)]
+pub struct State {
+    pub env: Environment,
+    pub comp: Average,
+    pub exp: Average,
+}
+
+impl State {
+    /// Create a `ws::State` from sink and source temperatures
+    pub fn new(sink: f64, source: f64) -> Self {
+        Self {
+            env: Environment {
+                sink_temp: sink,
+                source_temp: source,
+            },
+            comp: Average {},
+            exp: Average {},
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Average {
+    // as needed...
 }
