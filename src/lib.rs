@@ -1,7 +1,7 @@
 #![allow(dead_code)] // TODO: remove this when we have a public interface
 
 mod chx;
-// mod engine;
+mod engine;
 mod fluid;
 mod hhx;
 mod regen;

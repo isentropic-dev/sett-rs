@@ -83,7 +83,7 @@ impl Builder {
         }
     }
 
-    /// Set the `frequency` value
+    /// Set the `frequency` value in Hz
     pub fn with_frequency(self, frequency: f64) -> Self {
         Self {
             frequency: Some(frequency),
@@ -91,7 +91,7 @@ impl Builder {
         }
     }
 
-    /// Set the `phase_angle` value
+    /// Set the `phase_angle` value in degrees
     pub fn with_phase_angle(self, phase_angle: f64) -> Self {
         Self {
             phase_angle: Some(phase_angle),
@@ -99,7 +99,7 @@ impl Builder {
         }
     }
 
-    /// Define the compression space geometry
+    /// Define the compression space geometry in m^3
     pub fn with_compression_volumes(self, clearance: f64, swept: f64) -> Self {
         Self {
             comp_geometry: Some(Geometry {
@@ -110,7 +110,7 @@ impl Builder {
         }
     }
 
-    /// Define the expansion space geometry
+    /// Define the expansion space geometry in m^3
     pub fn with_expansion_volumes(self, clearance: f64, swept: f64) -> Self {
         Self {
             exp_geometry: Some(Geometry {
