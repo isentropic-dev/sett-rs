@@ -11,19 +11,27 @@ pub struct Engine {
 
 #[cfg(test)]
 mod tests {
+    use crate::ws::{sinusoidal_drive, Parasitics, ThermalResistance};
+
     use super::*;
 
     #[test]
     fn create_engine() {
         let fluid = Box::new(fluid::IdealGas::new("Hydrogen"));
-        let ws = Box::new(
-            ws::SinusoidalDrive::builder()
-                .with_frequency(75.0) // 4,500 rpm
-                .with_phase_angle(90.0)
-                .with_compression_volumes(1.0, 1.0)
-                .with_expansion_volumes(1.0, 1.0)
-                .build(),
-        );
+        let ws = Box::new(sinusoidal_drive::SinusoidalDrive {
+            frequency: 10.0,
+            phase_angle: 90.0,
+            comp_geometry: sinusoidal_drive::Geometry {
+                clearance_volume: 1e-5,
+                swept_volume: 2e-4,
+            },
+            exp_geometry: sinusoidal_drive::Geometry {
+                clearance_volume: 3e-5,
+                swept_volume: 4e-4,
+            },
+            thermal_resistance: ThermalResistance::default(),
+            parasitics: Parasitics::default(),
+        });
         let chx = Box::new(chx::FixedApproach {});
         let regen = Box::new(regen::FixedApproach {});
         let hhx = Box::new(hhx::FixedApproach {});

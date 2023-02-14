@@ -1,13 +1,7 @@
 // mod gpu3;
 // mod mod2;
 // mod rhombic_drive;
-mod sinusoidal_drive;
-
-// Export all available cold heat exchanger components
-// pub use gpu3::GPU3;
-// pub use mod2::Mod2;
-// pub use rhombic_drive::RhombicDrive;
-pub use sinusoidal_drive::SinusoidalDrive;
+pub mod sinusoidal_drive;
 
 use crate::types::{Environment, ParasiticPower};
 

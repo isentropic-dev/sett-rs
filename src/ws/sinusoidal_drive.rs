@@ -4,140 +4,17 @@ use super::{Parasitics, ThermalResistance, Volumes, WorkingSpaces};
 
 #[allow(non_snake_case)]
 pub struct SinusoidalDrive {
-    frequency: f64,
-    phase_angle: f64,
-    comp_geometry: Geometry,
-    exp_geometry: Geometry,
-    thermal_resistance: ThermalResistance,
-    parasitics: Parasitics,
+    pub frequency: f64,
+    pub phase_angle: f64,
+    pub comp_geometry: Geometry,
+    pub exp_geometry: Geometry,
+    pub thermal_resistance: ThermalResistance,
+    pub parasitics: Parasitics,
 }
 
-impl SinusoidalDrive {
-    /// Initialize the builder for a `SinusoidalDrive`
-    pub fn builder() -> Builder {
-        Builder {
-            frequency: None,
-            phase_angle: None,
-            comp_geometry: None,
-            exp_geometry: None,
-            thermal_resistance: ThermalResistance::default(), // default conditions are adiabatic
-            parasitics: Parasitics::default(),                // default is no parasitic losses
-        }
-    }
-
-    /// Create a `SinusoidalDrive` component from the legacy JSON format
-    ///
-    /// The legacy JSON format for the sinusoidal drive component used by the
-    /// MATLAB version of SETT has the following format:
-    ///
-    /// ```json
-    /// {
-    ///    "frequency", 66.6667,
-    ///    "phaseAngle", 90,
-    ///    "V_swept_c", 1.1e-4,
-    ///    "V_clearance_c", 4.7e-5,
-    ///    "V_swept_e", 1.1e-4,
-    ///    "V_clearance_e", 1.7e-5,
-    ///    "R_c", "Inf",
-    ///    "R_e", "Inf",
-    ///    "W_parasitic_c", 0,
-    ///    "W_parasitic_e", 0,
-    ///    "Q_parasitic_e", 0
-    /// }
-    pub fn from_legacy_json() -> Self {
-        todo!()
-    }
-}
-
-pub struct Builder {
-    frequency: Option<f64>,
-    phase_angle: Option<f64>,
-    comp_geometry: Option<Geometry>,
-    exp_geometry: Option<Geometry>,
-    thermal_resistance: ThermalResistance,
-    parasitics: Parasitics,
-}
-
-impl Builder {
-    /// Convert the builder into a `SinusoidalDrive`
-    pub fn build(self) -> SinusoidalDrive {
-        let frequency = self
-            .frequency
-            .expect("frequency must be set using the `with_frequency()` method");
-        let phase_angle = self
-            .phase_angle
-            .expect("phase angle must be set using the `with_phase_angle()` method");
-        let comp_geometry = self.comp_geometry.expect(
-            "compression space volumes must be set using the `with_compression_volumes()` method",
-        );
-        let exp_geometry = self.exp_geometry.expect(
-            "expansion space volumes must be set using the `with_expansion_volumes()` method",
-        );
-        SinusoidalDrive {
-            frequency,
-            phase_angle,
-            comp_geometry,
-            exp_geometry,
-            thermal_resistance: self.thermal_resistance,
-            parasitics: self.parasitics,
-        }
-    }
-
-    /// Set the `frequency` value in Hz
-    pub fn with_frequency(self, frequency: f64) -> Self {
-        Self {
-            frequency: Some(frequency),
-            ..self
-        }
-    }
-
-    /// Set the `phase_angle` value in degrees
-    pub fn with_phase_angle(self, phase_angle: f64) -> Self {
-        Self {
-            phase_angle: Some(phase_angle),
-            ..self
-        }
-    }
-
-    /// Define the compression space geometry in m^3
-    pub fn with_compression_volumes(self, clearance: f64, swept: f64) -> Self {
-        Self {
-            comp_geometry: Some(Geometry {
-                clearance_volume: clearance,
-                swept_volume: swept,
-            }),
-            ..self
-        }
-    }
-
-    /// Define the expansion space geometry in m^3
-    pub fn with_expansion_volumes(self, clearance: f64, swept: f64) -> Self {
-        Self {
-            exp_geometry: Some(Geometry {
-                clearance_volume: clearance,
-                swept_volume: swept,
-            }),
-            ..self
-        }
-    }
-
-    /// Set the `thermal_resistance` value
-    pub fn with_thermal_resistance(self, thermal_resistance: ThermalResistance) -> Self {
-        Self {
-            thermal_resistance,
-            ..self
-        }
-    }
-
-    /// Set the `parasitics` value
-    pub fn with_parasitics(self, parasitics: Parasitics) -> Self {
-        Self { parasitics, ..self }
-    }
-}
-
-struct Geometry {
-    clearance_volume: f64,
-    swept_volume: f64,
+pub struct Geometry {
+    pub clearance_volume: f64,
+    pub swept_volume: f64,
 }
 
 impl WorkingSpaces for SinusoidalDrive {
@@ -190,12 +67,20 @@ mod tests {
         let swept_vol_c = 2e-4;
         let clear_vol_e = 3e-5;
         let swept_vol_e = 4e-4;
-        let drive = SinusoidalDrive::builder()
-            .with_frequency(10.0)
-            .with_phase_angle(90.0)
-            .with_compression_volumes(clear_vol_c, swept_vol_c)
-            .with_expansion_volumes(clear_vol_e, swept_vol_e)
-            .build();
+        let drive = SinusoidalDrive {
+            frequency: 10.0,
+            phase_angle: 90.0,
+            comp_geometry: Geometry {
+                clearance_volume: clear_vol_c,
+                swept_volume: swept_vol_c,
+            },
+            exp_geometry: Geometry {
+                clearance_volume: clear_vol_e,
+                swept_volume: swept_vol_e,
+            },
+            thermal_resistance: ThermalResistance::default(),
+            parasitics: Parasitics::default(),
+        };
         let state = State::new(0.0, 0.0); // required but not used by this component
         let volumes = drive.volumes(&state); // volumes as a function of time
 
