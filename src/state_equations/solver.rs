@@ -1,7 +1,7 @@
 use anyhow::{anyhow, bail, Context, Result};
 use na::{SMatrix, SVector};
 
-use super::types::{FlowDirection, Inputs, Solution};
+use super::{flow_direction::FlowDirection, Inputs, Solution};
 
 type Matrix = SMatrix<f64, 10, 10>;
 type Vector = SVector<f64, 10>;

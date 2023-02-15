@@ -3,11 +3,9 @@ use std::cell::RefCell;
 use anyhow::Result;
 use ode_solvers::{Dopri5, System, Vector3};
 
-use super::{
-    solver::solve,
-    types::{Conditions, FlowDirection, StateValues, Time},
-    Cycle,
-};
+use crate::types::{ConvergenceTolerance, OdeTolerance};
+
+use super::{flow_direction::FlowDirection, solver::solve, Conditions, Cycle, Values};
 
 /// Represents an integration of the state equations over a cycle
 pub struct Integration<'a, T: Cycle> {
@@ -78,10 +76,16 @@ impl<'a, T: Cycle> Integration<'a, T> {
         last_point.time
     }
 
+    /// Return the conditions at the end of the integration
+    pub fn final_conditions(&self) -> Conditions {
+        let last_point = self.points.last().unwrap(); // `self.points` is never empty
+        last_point.conditions
+    }
+
     /// Calculate state equation values at each point
     ///
     /// This function consumes the `Integration`.
-    pub fn into_state_values(self) -> Vec<StateValues> {
+    pub fn into_state_values(self) -> Vec<Values> {
         let mut flow_dir = FlowDirection::default();
         self.points
             .into_iter()
@@ -91,7 +95,7 @@ impl<'a, T: Cycle> Integration<'a, T> {
                 let solution = solve::<T::Solver>(inputs, flow_dir)
                     .expect("TODO: what do we do if this fails?");
                 flow_dir = FlowDirection::from_solution(&solution);
-                StateValues {
+                Values {
                     time,
                     conditions,
                     solution,
@@ -101,42 +105,9 @@ impl<'a, T: Cycle> Integration<'a, T> {
     }
 }
 
-/// Tolerances used by the ODE integrator
-#[derive(Debug, Clone, Copy)]
-pub struct OdeTolerance {
-    abs: f64,
-    rel: f64,
-}
-
-impl OdeTolerance {
-    pub fn new(abs: f64, rel: f64) -> Self {
-        Self { abs, rel }
-    }
-}
-
-/// Tolerances related to convergence between subsequent values
-#[derive(Debug, Clone, Copy)]
-pub struct ConvergenceTolerance {
-    abs: f64,
-    rel: f64,
-}
-
-impl ConvergenceTolerance {
-    pub fn new(abs: f64, rel: f64) -> Self {
-        Self { abs, rel }
-    }
-
-    /// Return `true` if the change from `old` to `new` is sufficiently small
-    fn is_converged(&self, old: f64, new: f64) -> bool {
-        let abs_change = new - old;
-        let rel_change = abs_change / old;
-        abs_change.abs() < self.abs && rel_change.abs() < self.rel
-    }
-}
-
 /// The conditions within the cycle at a point in time
 struct Point {
-    time: Time,
+    time: f64,
     conditions: Conditions,
 }
 
