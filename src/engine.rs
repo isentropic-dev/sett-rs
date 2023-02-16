@@ -11,9 +11,38 @@ pub struct Engine {
 
 #[cfg(test)]
 mod tests {
-    use crate::ws::{sinusoidal_drive, Parasitics, ThermalResistance};
+    use crate::{
+        types::ParasiticPower,
+        ws::{sinusoidal_drive, Parasitics, ThermalResistance},
+    };
 
     use super::*;
+
+    const CHX_VOL: f64 = 4.0e-5_f64;
+    const CHX_R_HYD: f64 = 0.;
+    const CHX_APPROACH: f64 = 40.;
+
+    const HHX_VOL: f64 = 1.0e-4_f64;
+    const HHX_R_HYD: f64 = 0.;
+    const HHX_APPROACH: f64 = 100.;
+
+    fn chx_fixed_approach() -> Box<chx::FixedApproach> {
+        Box::new(chx::FixedApproach::new(
+            CHX_VOL,
+            CHX_R_HYD,
+            CHX_APPROACH,
+            ParasiticPower::default(),
+        ))
+    }
+
+    fn hhx_fixed_approach() -> Box<hhx::FixedApproach> {
+        Box::new(hhx::FixedApproach::new(
+            HHX_VOL,
+            HHX_R_HYD,
+            HHX_APPROACH,
+            ParasiticPower::default(),
+        ))
+    }
 
     #[test]
     fn create_engine() {
@@ -32,15 +61,13 @@ mod tests {
             thermal_resistance: ThermalResistance::default(),
             parasitics: Parasitics::default(),
         });
-        let chx = Box::new(chx::FixedApproach {});
         let regen = Box::new(regen::FixedApproach {});
-        let hhx = Box::new(hhx::FixedApproach {});
         let _engine = Engine {
             fluid,
             ws,
-            chx,
+            chx: chx_fixed_approach(),
             regen,
-            hhx,
+            hhx: hhx_fixed_approach(),
         };
     }
 }
