@@ -20,8 +20,4 @@ impl ColdHeatExchanger for Mod2 {
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         todo!()
     }
-
-    fn report(&self, _state: &State) -> String {
-        "NASA Mod II cold heat exchanger".to_string()
-    }
 }

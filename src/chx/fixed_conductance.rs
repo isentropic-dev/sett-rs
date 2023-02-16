@@ -20,8 +20,4 @@ impl ColdHeatExchanger for FixedConductance {
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         todo!()
     }
-
-    fn report(&self, _state: &State) -> String {
-        "Fixed conductance cold heat exchanger".to_string()
-    }
 }

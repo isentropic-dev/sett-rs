@@ -33,9 +33,6 @@ pub trait Regenerator {
 
     /// Returns the parasitic power associated with the regenerator
     fn parasitics(&self, state: &State) -> ParasiticPower;
-
-    /// Returns information about the regenerator
-    fn report(&self, state: &State) -> String;
 }
 
 /// Information available to a component for calculating cycle parameters

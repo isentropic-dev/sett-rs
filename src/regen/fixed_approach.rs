@@ -48,10 +48,6 @@ impl Regenerator for FixedApproach {
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         self.parasitics
     }
-
-    fn report(&self, _state: &State) -> String {
-        todo!()
-    }
 }
 
 impl Default for FixedApproach {

@@ -18,8 +18,4 @@ impl HotHeatExchanger for FixedConductance {
     fn parasitics(&self, _state: &State) -> crate::types::ParasiticPower {
         todo!()
     }
-
-    fn report(&self, _state: &State) -> String {
-        "Fixed conductance hot heat exchanger".to_string()
-    }
 }

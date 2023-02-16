@@ -20,8 +20,4 @@ impl HotHeatExchanger for GPU3 {
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         todo!()
     }
-
-    fn report(&self, _state: &State) -> String {
-        "GPU-3 hot heat exchanger".to_string()
-    }
 }
