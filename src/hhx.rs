@@ -36,9 +36,6 @@ pub trait HotHeatExchanger {
 
     /// Returns the parasitic power associated with the heat exchanger
     fn parasitics(&self, state: &State) -> ParasiticPower;
-
-    /// Returns information about the heat exchanger
-    fn report(&self, state: &State) -> String;
 }
 
 /// Information available to a component for calculating cycle parameters

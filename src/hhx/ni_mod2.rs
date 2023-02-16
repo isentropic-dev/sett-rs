@@ -20,8 +20,4 @@ impl HotHeatExchanger for NuclearIsomerMod2 {
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         todo!()
     }
-
-    fn report(&self, _state: &State) -> String {
-        "NASA Mod II hot heat exchanger with nuclear isomer".to_string()
-    }
 }

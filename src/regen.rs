@@ -31,14 +31,8 @@ pub trait Regenerator {
     /// Returns the hydraulic resistance in Pa-s/m^3 of the regenerator
     fn hydraulic_resistance(&self, state: &State) -> f64;
 
-    /// Returns the time-discretized pressure drop through the regenerator
-    fn pressure_drop(&self, state: &State) -> &[f64];
-
     /// Returns the parasitic power associated with the regenerator
     fn parasitics(&self, state: &State) -> ParasiticPower;
-
-    /// Returns information about the regenerator
-    fn report(&self, state: &State) -> String;
 }
 
 /// Information available to a component for calculating cycle parameters

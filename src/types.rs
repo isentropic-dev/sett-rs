@@ -11,7 +11,7 @@ pub struct Environment {
 /// Represents parasitic power loss in a component
 ///
 /// Each type of power has units of watts (W).
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct ParasiticPower {
     pub thermal: f64,
     pub mechanical: f64,

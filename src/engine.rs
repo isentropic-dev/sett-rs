@@ -15,6 +15,18 @@ mod tests {
 
     use super::*;
 
+    fn chx_fixed_approach() -> Box<chx::FixedApproach> {
+        Box::new(chx::FixedApproach::default())
+    }
+
+    fn hhx_fixed_approach() -> Box<hhx::FixedApproach> {
+        Box::new(hhx::FixedApproach::default())
+    }
+
+    fn regen_fixed_approach() -> Box<regen::FixedApproach> {
+        Box::new(regen::FixedApproach::default())
+    }
+
     #[test]
     fn create_engine() {
         let fluid = Box::new(fluid::IdealGas::new("Hydrogen"));
@@ -32,15 +44,12 @@ mod tests {
             thermal_resistance: ThermalResistance::default(),
             parasitics: Parasitics::default(),
         });
-        let chx = Box::new(chx::FixedApproach {});
-        let regen = Box::new(regen::FixedApproach {});
-        let hhx = Box::new(hhx::FixedApproach {});
         let _engine = Engine {
             fluid,
             ws,
-            chx,
-            regen,
-            hhx,
+            chx: chx_fixed_approach(),
+            regen: regen_fixed_approach(),
+            hhx: hhx_fixed_approach(),
         };
     }
 }
