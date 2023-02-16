@@ -26,6 +26,10 @@ mod tests {
     const HHX_R_HYD: f64 = 0.;
     const HHX_APPROACH: f64 = 100.;
 
+    const REGEN_VOL: f64 = 1.0e-4_f64;
+    const REGEN_R_HYD: f64 = 0.;
+    const REGEN_APPROACH: f64 = 10.;
+
     fn chx_fixed_approach() -> Box<chx::FixedApproach> {
         Box::new(chx::FixedApproach::new(
             CHX_VOL,
@@ -40,6 +44,15 @@ mod tests {
             HHX_VOL,
             HHX_R_HYD,
             HHX_APPROACH,
+            ParasiticPower::default(),
+        ))
+    }
+
+    fn regen_fixed_approach() -> Box<regen::FixedApproach> {
+        Box::new(regen::FixedApproach::new(
+            REGEN_VOL,
+            REGEN_R_HYD,
+            REGEN_APPROACH,
             ParasiticPower::default(),
         ))
     }
@@ -61,12 +74,11 @@ mod tests {
             thermal_resistance: ThermalResistance::default(),
             parasitics: Parasitics::default(),
         });
-        let regen = Box::new(regen::FixedApproach {});
         let _engine = Engine {
             fluid,
             ws,
             chx: chx_fixed_approach(),
-            regen,
+            regen: regen_fixed_approach(),
             hhx: hhx_fixed_approach(),
         };
     }
