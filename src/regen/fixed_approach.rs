@@ -45,10 +45,6 @@ impl Regenerator for FixedApproach {
         self.R_hyd
     }
 
-    fn pressure_drop(&self, _state: &State) -> &[f64] {
-        todo!()
-    }
-
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         self.parasitics
     }
