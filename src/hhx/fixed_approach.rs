@@ -53,3 +53,14 @@ impl HotHeatExchanger for FixedApproach {
         todo!()
     }
 }
+
+impl Default for FixedApproach {
+    fn default() -> Self {
+        Self {
+            R_hyd: 0.,
+            volume: 1.0e-4_f64,
+            approach: 100.,
+            parasitics: ParasiticPower::default(),
+        }
+    }
+}

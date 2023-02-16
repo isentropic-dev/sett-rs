@@ -11,50 +11,20 @@ pub struct Engine {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        types::ParasiticPower,
-        ws::{sinusoidal_drive, Parasitics, ThermalResistance},
-    };
+    use crate::ws::{sinusoidal_drive, Parasitics, ThermalResistance};
 
     use super::*;
 
-    const CHX_VOL: f64 = 4.0e-5_f64;
-    const CHX_R_HYD: f64 = 0.;
-    const CHX_APPROACH: f64 = 40.;
-
-    const HHX_VOL: f64 = 1.0e-4_f64;
-    const HHX_R_HYD: f64 = 0.;
-    const HHX_APPROACH: f64 = 100.;
-
-    const REGEN_VOL: f64 = 1.0e-4_f64;
-    const REGEN_R_HYD: f64 = 0.;
-    const REGEN_APPROACH: f64 = 10.;
-
     fn chx_fixed_approach() -> Box<chx::FixedApproach> {
-        Box::new(chx::FixedApproach::new(
-            CHX_VOL,
-            CHX_R_HYD,
-            CHX_APPROACH,
-            ParasiticPower::default(),
-        ))
+        Box::new(chx::FixedApproach::default())
     }
 
     fn hhx_fixed_approach() -> Box<hhx::FixedApproach> {
-        Box::new(hhx::FixedApproach::new(
-            HHX_VOL,
-            HHX_R_HYD,
-            HHX_APPROACH,
-            ParasiticPower::default(),
-        ))
+        Box::new(hhx::FixedApproach::default())
     }
 
     fn regen_fixed_approach() -> Box<regen::FixedApproach> {
-        Box::new(regen::FixedApproach::new(
-            REGEN_VOL,
-            REGEN_R_HYD,
-            REGEN_APPROACH,
-            ParasiticPower::default(),
-        ))
+        Box::new(regen::FixedApproach::default())
     }
 
     #[test]

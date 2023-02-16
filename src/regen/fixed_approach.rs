@@ -57,3 +57,14 @@ impl Regenerator for FixedApproach {
         todo!()
     }
 }
+
+impl Default for FixedApproach {
+    fn default() -> Self {
+        Self {
+            R_hyd: 0.,
+            volume: 1.0e-4_f64,
+            approach: 10.,
+            parasitics: ParasiticPower::default(),
+        }
+    }
+}

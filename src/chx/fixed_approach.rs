@@ -53,3 +53,14 @@ impl ColdHeatExchanger for FixedApproach {
         todo!()
     }
 }
+
+impl Default for FixedApproach {
+    fn default() -> Self {
+        Self {
+            R_hyd: 0.,
+            volume: 4.0e-5_f64,
+            approach: 40.,
+            parasitics: ParasiticPower::default(),
+        }
+    }
+}
