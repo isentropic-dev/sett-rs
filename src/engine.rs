@@ -1,17 +1,29 @@
-use crate::{chx, fluid, hhx, regen, ws};
+mod state;
 
-/// Represents a Stirling engine
-pub struct Engine {
-    pub fluid: Box<dyn fluid::WorkingFluid>,
+use crate::{chx, fluid::Fluid, hhx, regen, state_equations::Values, ws};
+
+/// The components of a Stirling engine
+pub struct Components<T: Fluid> {
+    pub fluid: T,
     pub ws: Box<dyn ws::WorkingSpaces>,
     pub chx: Box<dyn chx::ColdHeatExchanger>,
     pub regen: Box<dyn regen::Regenerator>,
     pub hhx: Box<dyn hhx::HotHeatExchanger>,
 }
 
+/// Represents a Stirling engine running at cyclic steady state
+pub struct Engine<T: Fluid> {
+    pub components: Components<T>,
+    pub state: state::State<T>,
+    pub values: Vec<Values>,
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::ws::{sinusoidal_drive, Parasitics, ThermalResistance};
+    use crate::{
+        fluid,
+        ws::{sinusoidal_drive, Parasitics, ThermalResistance},
+    };
 
     use super::*;
 
@@ -27,10 +39,8 @@ mod tests {
         Box::new(regen::FixedApproach::default())
     }
 
-    #[test]
-    fn create_engine() {
-        let fluid = Box::new(fluid::IdealGas::new("Hydrogen"));
-        let ws = Box::new(sinusoidal_drive::SinusoidalDrive {
+    fn ws_sinusoidal() -> Box<ws::sinusoidal_drive::SinusoidalDrive> {
+        Box::new(sinusoidal_drive::SinusoidalDrive {
             frequency: 10.0,
             phase_angle: 90.0,
             comp_geometry: sinusoidal_drive::Geometry {
@@ -43,10 +53,15 @@ mod tests {
             },
             thermal_resistance: ThermalResistance::default(),
             parasitics: Parasitics::default(),
-        });
-        let _engine = Engine {
+        })
+    }
+
+    #[test]
+    fn create_components() {
+        let fluid = fluid::IdealGas::new("Hydrogen");
+        let _components = Components {
             fluid,
-            ws,
+            ws: ws_sinusoidal(),
             chx: chx_fixed_approach(),
             regen: regen_fixed_approach(),
             hhx: hhx_fixed_approach(),
