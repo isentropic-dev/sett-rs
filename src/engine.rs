@@ -1,4 +1,5 @@
-mod state;
+mod run;
+pub mod state;
 
 use crate::{chx, fluid::Fluid, hhx, regen, state_equations::Values, ws};
 
@@ -22,7 +23,7 @@ pub struct Engine<T: Fluid> {
 mod tests {
     use crate::{
         fluid,
-        ws::{sinusoidal_drive, Parasitics, ThermalResistance},
+        ws::{sinusoidal_drive::Geometry, Parasitics, ThermalResistance},
     };
 
     use super::*;
@@ -39,15 +40,15 @@ mod tests {
         Box::new(regen::FixedApproach::default())
     }
 
-    fn ws_sinusoidal() -> Box<ws::sinusoidal_drive::SinusoidalDrive> {
-        Box::new(sinusoidal_drive::SinusoidalDrive {
+    fn ws_sinusoidal() -> Box<ws::SinusoidalDrive> {
+        Box::new(ws::SinusoidalDrive {
             frequency: 10.0,
             phase_angle: 90.0,
-            comp_geometry: sinusoidal_drive::Geometry {
+            comp_geometry: Geometry {
                 clearance_volume: 1e-5,
                 swept_volume: 2e-4,
             },
-            exp_geometry: sinusoidal_drive::Geometry {
+            exp_geometry: Geometry {
                 clearance_volume: 3e-5,
                 swept_volume: 4e-4,
             },

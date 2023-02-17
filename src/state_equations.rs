@@ -98,6 +98,10 @@ mod tests {
         fn period(&self) -> f64 {
             0.5
         }
+
+        fn pres_zero(&self) -> f64 {
+            1.0
+        }
     }
 
     #[test]
