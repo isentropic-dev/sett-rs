@@ -42,10 +42,10 @@ pub fn run<T: Fluid, U: MatrixDecomposition>(
             Ok(new_state) => {
                 state = new_state;
             }
-            Err(old_state) => {
+            Err(state) => {
                 return Ok(Engine {
                     components,
-                    state: old_state,
+                    state,
                     values,
                 });
             }
