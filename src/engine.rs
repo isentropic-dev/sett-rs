@@ -29,15 +29,15 @@ mod tests {
     use super::*;
 
     fn chx_fixed_approach() -> Box<chx::FixedApproach> {
-        Box::new(chx::FixedApproach::default())
+        Box::<chx::FixedApproach>::default()
     }
 
     fn hhx_fixed_approach() -> Box<hhx::FixedApproach> {
-        Box::new(hhx::FixedApproach::default())
+        Box::<hhx::FixedApproach>::default()
     }
 
     fn regen_fixed_approach() -> Box<regen::FixedApproach> {
-        Box::new(regen::FixedApproach::default())
+        Box::<regen::FixedApproach>::default()
     }
 
     fn ws_sinusoidal() -> Box<ws::SinusoidalDrive> {
