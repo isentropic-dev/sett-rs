@@ -1,4 +1,4 @@
-use super::WorkingFluid;
+use super::Fluid;
 
 pub struct IdealGas {
     name: String,
@@ -10,8 +10,4 @@ impl IdealGas {
     }
 }
 
-impl WorkingFluid for IdealGas {
-    fn report(&self) -> String {
-        format!("{} (Ideal Gas)", self.name)
-    }
-}
+impl Fluid for IdealGas {}
