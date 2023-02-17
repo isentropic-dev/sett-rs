@@ -19,7 +19,7 @@ use super::{
 
 /// Attempt to create a running `Engine`
 pub fn run<T: Fluid, U: MatrixDecomposition>(
-    components: Components<T>,
+    components: Components,
     state_hint: State<T>,
     settings: &Settings,
 ) -> Result<Engine<T>> {
@@ -75,7 +75,7 @@ pub struct MaxIters {
 /// Create an `engine::Run` for a specific matrix solver
 #[allow(clippy::similar_names)]
 fn create_run<'a, T: Fluid, U: MatrixDecomposition>(
-    _components: &'a Components<T>,
+    _components: &'a Components,
     _state: &'a State<T>,
 ) -> Run<'a, T, U> {
     todo!()

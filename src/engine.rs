@@ -4,8 +4,7 @@ pub mod state;
 use crate::{chx, fluid::Fluid, hhx, regen, state_equations::Values, ws};
 
 /// The components of a Stirling engine
-pub struct Components<T: Fluid> {
-    pub fluid: T,
+pub struct Components {
     pub ws: Box<dyn ws::WorkingSpaces>,
     pub chx: Box<dyn chx::ColdHeatExchanger>,
     pub regen: Box<dyn regen::Regenerator>,
@@ -14,17 +13,14 @@ pub struct Components<T: Fluid> {
 
 /// Represents a Stirling engine running at cyclic steady state
 pub struct Engine<T: Fluid> {
-    pub components: Components<T>,
+    pub components: Components,
     pub state: state::State<T>,
     pub values: Vec<Values>,
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        fluid,
-        ws::{sinusoidal_drive::Geometry, Parasitics, ThermalResistance},
-    };
+    use crate::ws::{sinusoidal_drive::Geometry, Parasitics, ThermalResistance};
 
     use super::*;
 
@@ -59,9 +55,7 @@ mod tests {
 
     #[test]
     fn create_components() {
-        let fluid = fluid::IdealGas::new("Hydrogen");
         let _components = Components {
-            fluid,
             ws: ws_sinusoidal(),
             chx: chx_fixed_approach(),
             regen: regen_fixed_approach(),

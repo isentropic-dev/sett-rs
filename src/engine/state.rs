@@ -22,7 +22,7 @@ impl<T: Fluid> State<T> {
     #[allow(clippy::unused_self)] // TODO: remove when function is implemented
     pub fn update(
         self,
-        _components: &Components<T>,
+        _components: &Components,
         _values: &[Values],
         _tol: ConvergenceTolerance,
     ) -> Result<Self, Self> {
