@@ -28,11 +28,11 @@ impl IdealGas {
                 ref_temp: 250.,
                 cp_coefs: [
                     12471.4839,
-                    13.3194432,
-                    -0.0347782806,
-                    0.0000431784838,
-                    -2.42883335e-08,
-                    5.14289838e-12,
+                    13.319_443_2,
+                    -3.477_828_06e-2,
+                    4.317_848_38e-5,
+                    -2.428_833_35e-8,
+                    5.142_898_38e-12,
                 ],
             },
             _ => bail!("unknown ideal gas '{name}'"),
@@ -122,7 +122,6 @@ struct IdealGasParameters {
 /// Evaluate a 5th order polynomial using Horner's method
 ///
 /// Polynomial format is `a[0] + a[1]*x + a[2]*x^2 + a[3]*x^3 + a[4]*x^4 + a[5]*x^5`
-#[inline(always)]
 fn poly(a: [f64; 6], x: f64) -> f64 {
     ((((a[5] * x + a[4]) * x + a[3]) * x + a[2]) * x + a[1]) * x + a[0]
 }
