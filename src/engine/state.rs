@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn can_create_state() {
-        let fluid = IdealGas::new("hydrogen");
+        let fluid = IdealGas::new("hydrogen").unwrap();
         let _state = State {
             fluid,
             temp: Temperatures {
