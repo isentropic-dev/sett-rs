@@ -6,7 +6,6 @@ pub struct IdealGas {
     name: String,
     gas_constant: f64, // gas constant R in J/kg-K
     ref_temp: f64,
-    ref_enth: f64,
     cp_coefs: [f64; 6],
     enth_coefs: [f64; 6],
 }
@@ -52,7 +51,6 @@ impl IdealGas {
             name: name.into(),
             gas_constant,
             ref_temp,
-            ref_enth: poly(enth_coefs, ref_temp),
             cp_coefs,
             enth_coefs,
         })
@@ -65,7 +63,8 @@ impl Fluid for IdealGas {
     }
 
     fn enthalpy(&self, temp: f64, _pres: f64) -> f64 {
-        poly(self.enth_coefs, temp) - self.ref_enth
+        let coefs = self.enth_coefs.map(|x| x * (temp - self.ref_temp));
+        poly(coefs, temp)
     }
 
     #[allow(non_snake_case)]
@@ -147,8 +146,8 @@ mod tests {
         insta::assert_yaml_snapshot!(fluid.prop_set_1(500., 10e6), @r###"
         ---
         dens: 9.628206794625536
-        inte: -519307.5
-        enth: 0
+        inte: 778985
+        enth: 1298292.5
         dd_dP_T: 0.0000009628206794625535
         dd_dT_P: -0.01925641358925107
         du_dP_T: 0
@@ -159,8 +158,6 @@ mod tests {
         dens: 0.005349003774791964
         cp: 5193.17
         "###);
-        // TODO: The value of `0` for enth makes sense given the helium coefficients,
-        //       but see https://github.com/isentropic-dev/sett-rs/issues/27
     }
 
     #[test]
@@ -172,8 +169,8 @@ mod tests {
         insta::assert_yaml_snapshot!(fluid.prop_set_1(500., 10e6), @r###"
         ---
         dens: 4.849425343096843
-        inte: -1030636.7305105176
-        enth: 413.2694894824217
+        inte: 2462866.0072656246
+        enth: 3493916.0072656246
         dd_dP_T: 0.0000004849425343096843
         dd_dT_P: -0.009698850686193685
         du_dP_T: 0
