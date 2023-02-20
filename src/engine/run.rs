@@ -96,26 +96,72 @@ struct Run<'a, T: Fluid, U: MatrixDecomposition> {
     ws_vol_fn: Box<dyn Fn(f64) -> (ws::CompVolume, ws::ExpVolume)>,
 }
 
-#[allow(clippy::unused_self)] // TODO: remove when functions are implemented
 impl<T: Fluid, U: MatrixDecomposition> Run<'_, T, U> {
-    fn comp_inputs(&self, _vol: ws::CompVolume, _temp: f64, _pres: f64) -> WorkingSpaceInputs {
-        todo!()
+    fn comp_inputs(&self, vol: ws::CompVolume, temp: f64, pres: f64) -> WorkingSpaceInputs {
+        WorkingSpaceInputs {
+            vol: vol.value,
+            dens: self.fluid.dens(temp, pres),
+            inte: self.fluid.inte(temp, pres),
+            enth: self.fluid.enth(temp, pres),
+            dd_dP_T: self.fluid.dd_dP_T(temp, pres),
+            dd_dT_P: self.fluid.dd_dT_P(temp, pres),
+            du_dP_T: self.fluid.du_dP_T(temp, pres),
+            du_dT_P: self.fluid.du_dT_P(temp, pres),
+            dV_dt: vol.deriv,
+            Q_dot: self.ws_parasitics.comp.thermal,
+        }
     }
 
-    fn chx_inputs(&self, _pres: f64) -> HeatExchangerInputs {
-        todo!()
+    fn chx_inputs(&self, pres: f64) -> HeatExchangerInputs {
+        let temp = self.temp.chx;
+        HeatExchangerInputs {
+            vol: self.vol_chx,
+            dens: self.fluid.dens(temp, pres),
+            inte: self.fluid.inte(temp, pres),
+            enth: self.fluid.enth(temp, pres),
+            dd_dP_T: self.fluid.dd_dP_T(temp, pres),
+            du_dP_T: self.fluid.du_dP_T(temp, pres),
+        }
     }
 
-    fn regen_inputs(&self, _pres: f64) -> RegeneratorInputs {
-        todo!()
+    fn regen_inputs(&self, pres: f64) -> RegeneratorInputs {
+        let temp = self.temp.regen_avg;
+        RegeneratorInputs {
+            vol: self.vol_regen,
+            dens: self.fluid.dens(temp, pres),
+            inte: self.fluid.inte(temp, pres),
+            dd_dP_T: self.fluid.dd_dP_T(temp, pres),
+            du_dP_T: self.fluid.du_dP_T(temp, pres),
+            enth_cold: self.fluid.enth(self.temp.regen_cold, pres),
+            enth_hot: self.fluid.enth(self.temp.regen_hot, pres),
+        }
     }
 
-    fn hhx_inputs(&self, _pres: f64) -> HeatExchangerInputs {
-        todo!()
+    fn hhx_inputs(&self, pres: f64) -> HeatExchangerInputs {
+        let temp = self.temp.hhx;
+        HeatExchangerInputs {
+            vol: self.vol_hhx,
+            dens: self.fluid.dens(temp, pres),
+            inte: self.fluid.inte(temp, pres),
+            enth: self.fluid.enth(temp, pres),
+            dd_dP_T: self.fluid.dd_dP_T(temp, pres),
+            du_dP_T: self.fluid.du_dP_T(temp, pres),
+        }
     }
 
-    fn exp_inputs(&self, _vol: ws::ExpVolume, _temp: f64, _pres: f64) -> WorkingSpaceInputs {
-        todo!()
+    fn exp_inputs(&self, vol: ws::ExpVolume, temp: f64, pres: f64) -> WorkingSpaceInputs {
+        WorkingSpaceInputs {
+            vol: vol.value,
+            dens: self.fluid.dens(temp, pres),
+            inte: self.fluid.inte(temp, pres),
+            enth: self.fluid.enth(temp, pres),
+            dd_dP_T: self.fluid.dd_dP_T(temp, pres),
+            dd_dT_P: self.fluid.dd_dT_P(temp, pres),
+            du_dP_T: self.fluid.du_dP_T(temp, pres),
+            du_dT_P: self.fluid.du_dT_P(temp, pres),
+            dV_dt: vol.deriv,
+            Q_dot: self.ws_parasitics.exp.thermal,
+        }
     }
 }
 
