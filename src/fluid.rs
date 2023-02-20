@@ -4,79 +4,81 @@ mod refprop;
 
 // Export all available fluid models
 pub use ideal_gas::IdealGas;
-use serde::Serialize;
 
 pub trait Fluid {
-    /// Return `density` in kg/m3
+    /// Return density in kg/m3
     ///
     /// # Arguments
     ///
     /// * `temp` - temperature (K)
     /// * `pres` - pressure (Pa)
     ///
-    fn density(&self, temp: f64, pres: f64) -> f64;
+    fn dens(&self, temp: f64, pres: f64) -> f64;
 
-    /// Return specific `enthalpy` in J/kg
+    /// Return specific internal energy in J/kg
     ///
     /// # Arguments
     ///
     /// * `temp` - temperature (K)
     /// * `pres` - pressure (Pa)
     ///
-    fn enthalpy(&self, temp: f64, pres: f64) -> f64;
+    fn inte(&self, temp: f64, pres: f64) -> f64;
 
-    /// Return the `PropSetOne` collection of properties
+    /// Return specific enthalpy in J/kg
     ///
     /// # Arguments
     ///
     /// * `temp` - temperature (K)
     /// * `pres` - pressure (Pa)
     ///
-    fn prop_set_1(&self, temp: f64, pres: f64) -> PropSetOne;
+    fn enth(&self, temp: f64, pres: f64) -> f64;
 
-    /// Return the `PropSetTwo` collection of properties
+    /// Return specific heat at constant pressure in J/kg-K
     ///
     /// # Arguments
     ///
     /// * `temp` - temperature (K)
     /// * `pres` - pressure (Pa)
     ///
-    fn prop_set_2(&self, temp: f64, pres: f64) -> PropSetTwo;
+    fn cp(&self, temp: f64, pres: f64) -> f64;
 
-    /// Return the `PropSetThree` collection of properties
+    /// Return derivative of density with respect to pressure at constant temperature in kg/m3-Pa
     ///
     /// # Arguments
     ///
     /// * `temp` - temperature (K)
     /// * `pres` - pressure (Pa)
     ///
-    fn prop_set_3(&self, temp: f64, pres: f64) -> PropSetThree;
-}
+    #[allow(non_snake_case)]
+    fn dd_dP_T(&self, temp: f64, pres: f64) -> f64;
 
-#[allow(non_snake_case)]
-#[derive(Debug, Serialize)]
-pub struct PropSetOne {
-    pub dens: f64,    // density (kg/m3)
-    pub inte: f64,    // specific internal energy (J/kg)
-    pub enth: f64,    // specific enthalpy (J/kg)
-    pub dd_dP_T: f64, // derivative of density wrt pressure at constant temperature (kg/Pa)
-    pub dd_dT_P: f64, // derivative of density wrt temperature at constant pressure (kg/K)
-    pub du_dP_T: f64, // derivative of internal energy wrt pressure at constant temperature (J/kg-Pa)
-    pub du_dT_P: f64, // derivative of internal energy wrt pressure at constant temperature (J/kg-K)
-}
+    /// Return derivative of density with respect to temperature at constant pressure in kg/m3-K
+    ///
+    /// # Arguments
+    ///
+    /// * `temp` - temperature (K)
+    /// * `pres` - pressure (Pa)
+    ///
+    #[allow(non_snake_case)]
+    fn dd_dT_P(&self, temp: f64, pres: f64) -> f64;
 
-#[allow(non_snake_case)]
-#[derive(Debug, Serialize)]
-pub struct PropSetTwo {
-    pub dens: f64,    // density (kg/m3)
-    pub inte: f64,    // specific internal energy (J/kg)
-    pub enth: f64,    // specific enthalpy (J/kg)
-    pub dd_dP_T: f64, // derivative of density wrt pressure at constant temperature (kg/Pa)
-    pub du_dP_T: f64, // derivative of internal energy wrt pressure at constant temperature (J/kg-Pa)
-}
+    /// Return derivative of internal energy with respect to pressure at constant temperature in J/kg-Pa
+    ///
+    /// # Arguments
+    ///
+    /// * `temp` - temperature (K)
+    /// * `pres` - pressure (Pa)
+    ///
+    #[allow(non_snake_case)]
+    fn du_dP_T(&self, temp: f64, pres: f64) -> f64;
 
-#[derive(Debug, Serialize)]
-pub struct PropSetThree {
-    pub dens: f64, // density (kg/m3)
-    pub cp: f64,   // specific heat at constant pressure (J/kg-K)
+    /// Return derivative of internal energy with respect to temperature at constant pressure in J/kg-K
+    ///
+    /// # Arguments
+    ///
+    /// * `temp` - temperature (K)
+    /// * `pres` - pressure (Pa)
+    ///
+    #[allow(non_snake_case)]
+    fn du_dT_P(&self, temp: f64, pres: f64) -> f64;
 }

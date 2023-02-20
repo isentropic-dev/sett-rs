@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 
-use super::{Fluid, PropSetOne, PropSetThree, PropSetTwo};
+use super::Fluid;
 
 pub struct IdealGas {
     name: String,
@@ -58,60 +58,41 @@ impl IdealGas {
 }
 
 impl Fluid for IdealGas {
-    fn density(&self, temp: f64, pres: f64) -> f64 {
+    fn dens(&self, temp: f64, pres: f64) -> f64 {
         pres / (self.gas_constant * temp)
     }
 
-    fn enthalpy(&self, temp: f64, _pres: f64) -> f64 {
-        // Adjust coefficients based on the integration of a temperature difference
+    fn inte(&self, temp: f64, pres: f64) -> f64 {
+        let enth = self.enth(temp, pres);
+        enth - self.gas_constant * (temp - self.ref_temp)
+    }
+
+    fn enth(&self, temp: f64, _pres: f64) -> f64 {
+        // Need to adjust coefficients based on the difference from reference
         let ref_diff = temp - self.ref_temp;
         let coefs = self.enth_coefs.map(|x| x * ref_diff);
-
         poly(coefs, temp)
     }
 
-    #[allow(non_snake_case)]
-    fn prop_set_1(&self, temp: f64, pres: f64) -> PropSetOne {
-        let dens = self.density(temp, pres);
-        let cp = poly(self.cp_coefs, temp);
-        let cv = cp - self.gas_constant;
-        let enth = self.enthalpy(temp, pres);
-        let inte = enth - self.gas_constant * (temp - self.ref_temp);
-        let dd_dT_P = -pres / (self.gas_constant * temp.powi(2));
-        let dd_dP_T = 1. / (self.gas_constant * temp);
-        let du_dT_P = cv;
-        let du_dP_T = 0.;
-        PropSetOne {
-            dens,
-            inte,
-            enth,
-            dd_dP_T,
-            dd_dT_P,
-            du_dP_T,
-            du_dT_P,
-        }
+    fn cp(&self, temp: f64, _pres: f64) -> f64 {
+        poly(self.cp_coefs, temp)
     }
 
-    #[allow(non_snake_case)]
-    fn prop_set_2(&self, temp: f64, pres: f64) -> PropSetTwo {
-        let dens = self.density(temp, pres);
-        let enth = self.enthalpy(temp, pres);
-        let inte = enth - self.gas_constant * (temp - self.ref_temp);
-        let dd_dP_T = 1. / (self.gas_constant * temp);
-        let du_dP_T = 0.;
-        PropSetTwo {
-            dens,
-            inte,
-            enth,
-            dd_dP_T,
-            du_dP_T,
-        }
+    fn dd_dP_T(&self, temp: f64, _pres: f64) -> f64 {
+        1. / (self.gas_constant * temp)
     }
 
-    fn prop_set_3(&self, temp: f64, pres: f64) -> PropSetThree {
-        let dens = self.density(temp, pres);
-        let cp = poly(self.cp_coefs, temp);
-        PropSetThree { dens, cp }
+    fn dd_dT_P(&self, temp: f64, pres: f64) -> f64 {
+        -pres / (self.gas_constant * temp.powi(2))
+    }
+
+    fn du_dP_T(&self, _temp: f64, _pres: f64) -> f64 {
+        0.
+    }
+
+    fn du_dT_P(&self, temp: f64, pres: f64) -> f64 {
+        let cp = self.cp(temp, pres);
+        cp - self.gas_constant
     }
 }
 
@@ -130,7 +111,56 @@ fn poly(a: [f64; 6], x: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
+    use serde::Serialize;
+
     use super::*;
+
+    #[allow(non_snake_case)]
+    #[derive(Serialize)]
+    struct AllProps {
+        dens: f64,
+        inte: f64,
+        enth: f64,
+        cp: f64,
+        dd_dP_T: f64,
+        dd_dT_P: f64,
+        du_dP_T: f64,
+        du_dT_P: f64,
+    }
+
+    impl AllProps {
+        /// Return all the properties for `name` at a given `temp` and `pres`
+        fn new(name: &str, temp: f64, pres: f64) -> Self {
+            let fluid = IdealGas::new(name).expect("unknown name");
+            Self {
+                dens: fluid.dens(temp, pres),
+                inte: fluid.inte(temp, pres),
+                enth: fluid.enth(temp, pres),
+                cp: fluid.cp(temp, pres),
+                dd_dP_T: fluid.dd_dP_T(temp, pres),
+                dd_dT_P: fluid.dd_dT_P(temp, pres),
+                du_dP_T: fluid.du_dP_T(temp, pres),
+                du_dT_P: fluid.du_dT_P(temp, pres),
+            }
+        }
+    }
+
+    /// Fails if enthalpy and internal energy aren't 0 a the reference temperature
+    fn check_at_reference(name: &str) {
+        let fluid = IdealGas::new(name).expect("unknown name");
+        let temp = fluid.ref_temp;
+        let pres = 101e3; // arbitrarily use atmospheric pressure
+        assert_eq!(
+            fluid.enth(temp, pres),
+            0.,
+            "enth should be zero at reference temperature"
+        );
+        assert_eq!(
+            fluid.inte(temp, pres),
+            0.,
+            "inte should be zero at reference temperature"
+        );
+    }
 
     #[test]
     fn check_poly() {
@@ -142,47 +172,33 @@ mod tests {
 
     #[test]
     fn helium() {
-        let fluid = IdealGas::new("helium").expect("should work");
-        let PropSetTwo { inte, enth, .. } = fluid.prop_set_2(fluid.ref_temp, 101.);
-        assert_eq!(enth, 0., "enth should be zero at reference temperature");
-        assert_eq!(inte, 0., "inte should be zero at reference temperature");
-        insta::assert_yaml_snapshot!(fluid.prop_set_1(500., 10e6), @r###"
+        check_at_reference("helium");
+        insta::assert_yaml_snapshot!(AllProps::new("helium", 500.0, 10e6), @r###"
         ---
         dens: 9.628206794625536
         inte: 778985
         enth: 1298292.5
+        cp: 5193.17
         dd_dP_T: 0.0000009628206794625535
         dd_dT_P: -0.01925641358925107
         du_dP_T: 0
         du_dT_P: 3115.94
         "###);
-        insta::assert_yaml_snapshot!(fluid.prop_set_3(450., 5000.), @r###"
-        ---
-        dens: 0.005349003774791964
-        cp: 5193.17
-        "###);
     }
 
     #[test]
     fn hydrogen() {
-        let fluid = IdealGas::new("hydrogen").expect("should work");
-        let PropSetTwo { inte, enth, .. } = fluid.prop_set_2(fluid.ref_temp, 101.);
-        assert_eq!(enth, 0., "enth should be zero at reference temperature");
-        assert_eq!(inte, 0., "inte should be zero at reference temperature");
-        insta::assert_yaml_snapshot!(fluid.prop_set_1(500., 10e6), @r###"
+        check_at_reference("hydrogen");
+        insta::assert_yaml_snapshot!(AllProps::new("hydrogen", 500.0, 10e6), @r###"
         ---
         dens: 4.849425343096843
         inte: 2462866.0072656246
         enth: 3493916.0072656246
+        cp: 14476.640555625
         dd_dP_T: 0.0000004849425343096843
         dd_dT_P: -0.009698850686193685
         du_dP_T: 0
         du_dT_P: 10352.440555624999
-        "###);
-        insta::assert_yaml_snapshot!(fluid.prop_set_3(450., 5000.), @r###"
-        ---
-        dens: 0.002694125190609357
-        cp: 14456.198318703318
         "###);
     }
 }
