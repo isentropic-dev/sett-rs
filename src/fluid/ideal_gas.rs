@@ -63,7 +63,10 @@ impl Fluid for IdealGas {
     }
 
     fn enthalpy(&self, temp: f64, _pres: f64) -> f64 {
-        let coefs = self.enth_coefs.map(|x| x * (temp - self.ref_temp));
+        // Adjust coefficients based on the integration of a temperature difference
+        let ref_diff = temp - self.ref_temp;
+        let coefs = self.enth_coefs.map(|x| x * ref_diff);
+
         poly(coefs, temp)
     }
 
