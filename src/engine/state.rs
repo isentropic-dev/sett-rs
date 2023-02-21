@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::{fluid::Fluid, state_equations, types::ConvergenceTolerance};
+use crate::{fluid::Fluid, state_equations, types::ConvergenceTolerance, ws::ThermalResistance};
 
 use super::Components;
 
@@ -235,9 +235,46 @@ impl HeatFlows {
         }
     }
 
-    /// Calculate `HeatFlows` from `state_equations::Values`
-    pub fn from_state_values(_values: &[Values], _temp_chx: f64, _thermal_res_comp: f64) -> Self {
-        todo!()
+    /// Calculate `HeatFlows` from `Values`
+    ///
+    /// To calculate the total heat flow in the cold and hot heat exchangers
+    /// we must also account for heat flow from the fluid in the compression
+    /// and expansion spaces to their respective heat exchangers.  Calculating
+    /// this additional heat transfer requires us to provide the heat exchanger
+    /// temperatures and the thermal resistance of the fluid in the two spaces.
+    #[allow(non_snake_case, clippy::similar_names)]
+    pub fn from_values(
+        values: &Values,
+        temp_chx: f64,
+        temp_hhx: f64,
+        thermal_res: ThermalResistance,
+    ) -> Self {
+        let t_final = values.time.last().expect("values cannot be empty");
+
+        // Cold heat exchanger
+        let Q_dot_c: Vec<_> = values
+            .T_c
+            .iter()
+            .map(|T_c| (T_c - temp_chx) / thermal_res.comp) // heat flow from fluid in compression space to chx
+            .collect();
+        let Q_dot_c = integrate(&values.time, &Q_dot_c) / t_final;
+        let Q_dot_k = integrate(&values.time, &values.Q_dot_k) / t_final;
+        let chx = Q_dot_c + Q_dot_k;
+
+        // Regenerator
+        let regen = integrate(&values.time, &values.Q_dot_r) / t_final;
+
+        // Hot heat exchanger
+        let Q_dot_e: Vec<_> = values
+            .T_e
+            .iter()
+            .map(|T_e| (temp_hhx - T_e) / thermal_res.exp) // heat flow from hhx to fluid in expansion space
+            .collect();
+        let Q_dot_e = integrate(&values.time, &Q_dot_e) / t_final;
+        let Q_dot_l = integrate(&values.time, &values.Q_dot_l) / t_final;
+        let hhx = Q_dot_e + Q_dot_l;
+
+        Self { chx, regen, hhx }
     }
 }
 
@@ -393,5 +430,50 @@ mod tests {
             hhx: 2.625,
         };
         assert_eq!(expected, MassFlows::from_values(&values));
+    }
+
+    #[test]
+    fn heat_flows_from_values() {
+        // Simple heat flow rates with adiabatic working spaces
+        let values = Values {
+            time: vec![0.0, 50.0, 100.0],
+            Q_dot_k: vec![1.0, 1.0, 1.0],
+            Q_dot_r: vec![1.0, 0.0, -1.0],
+            Q_dot_l: vec![0.0, 20.0, 0.0],
+            ..Values::default()
+        };
+        let temp_chx = 300.0;
+        let temp_hhx = 800.0;
+        let thermal_res = ThermalResistance::default(); // default is `f64::INFINITY`
+        let expected = HeatFlows {
+            chx: 1.0,
+            regen: 0.0,
+            hhx: 10.0,
+        };
+        let actual = HeatFlows::from_values(&values, temp_chx, temp_hhx, thermal_res);
+        assert_eq!(expected, actual);
+
+        // Check non-adiabatic conditions
+        let values = Values {
+            time: vec![0.0, 1.0],
+            T_c: vec![400.0, 400.0],
+            T_e: vec![600.0, 600.0],
+            Q_dot_k: vec![1.0, 1.0],
+            Q_dot_l: vec![5.0, 5.0],
+            ..Values::default()
+        };
+        let temp_chx = 300.0;
+        let temp_hhx = 800.0;
+        let thermal_res = ThermalResistance {
+            comp: 1.0,
+            exp: 50.0,
+        };
+        let expected = HeatFlows {
+            chx: 101.0,
+            regen: 0.0,
+            hhx: 9.0,
+        };
+        let actual = HeatFlows::from_values(&values, temp_chx, temp_hhx, thermal_res);
+        assert_eq!(expected, actual);
     }
 }
