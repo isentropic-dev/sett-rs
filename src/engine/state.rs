@@ -188,9 +188,40 @@ impl MassFlows {
         }
     }
 
-    /// Calculate `MassFlows` from `state_equations::Values`
-    pub fn from_state_values(_values: &[Values]) -> Self {
-        todo!()
+    /// Calculate `MassFlows` from `Values`
+    #[allow(clippy::similar_names)]
+    pub fn from_values(values: &Values) -> Self {
+        let t_final = values.time.last().expect("values cannot be empty");
+
+        // Average time-discretized mass flow rate in cold heat exchanger
+        let m_dot_chx: Vec<_> = values
+            .m_dot_ck
+            .iter()
+            .zip(values.m_dot_kr.iter())
+            .map(|(ck, kr)| 0.5 * (ck + kr).abs()) // flow in different directions cancel each other before taking abs
+            .collect();
+
+        // Average time-discretized mass flow rate in regenerator
+        let m_dot_regen: Vec<_> = values
+            .m_dot_kr
+            .iter()
+            .zip(values.m_dot_rl.iter())
+            .map(|(kr, rl)| 0.5 * (kr + rl).abs())
+            .collect();
+
+        // Average time-discretized mass flow rate in hot heat exchanger
+        let m_dot_hhx: Vec<_> = values
+            .m_dot_rl
+            .iter()
+            .zip(values.m_dot_le.iter())
+            .map(|(rl, le)| 0.5 * (rl + le).abs())
+            .collect();
+
+        Self {
+            chx: integrate(&values.time, &m_dot_chx) / t_final,
+            regen: integrate(&values.time, &m_dot_regen) / t_final,
+            hhx: integrate(&values.time, &m_dot_hhx) / t_final,
+        }
     }
 }
 
@@ -327,5 +358,40 @@ mod tests {
             t_zero: 1200.0,
         };
         assert_eq!(expected, Pressure::from_values(&values));
+    }
+
+    #[test]
+    fn mass_flows_from_values() {
+        // Constant mass flow rates
+        let values = Values {
+            time: vec![0.0, 5.0],
+            m_dot_ck: vec![1.0, 1.0],
+            m_dot_kr: vec![2.0, 2.0],
+            m_dot_rl: vec![3.0, 3.0],
+            m_dot_le: vec![4.0, 4.0],
+            ..Values::default()
+        };
+        let expected = MassFlows {
+            chx: 1.5,
+            regen: 2.5,
+            hhx: 3.5,
+        };
+        assert_eq!(expected, MassFlows::from_values(&values));
+
+        // Check that flow directions cancel
+        let values = Values {
+            time: vec![0.0, 5.0, 10.0],
+            m_dot_ck: vec![1.0, 1.0, 1.0],
+            m_dot_kr: vec![-2.0, -2.0, -2.0],
+            m_dot_rl: vec![-3.0, -3.0, -3.0],
+            m_dot_le: vec![4.0, -4.0, -3.0],
+            ..Values::default()
+        };
+        let expected = MassFlows {
+            chx: 0.5,
+            regen: 2.5,
+            hhx: 2.625,
+        };
+        assert_eq!(expected, MassFlows::from_values(&values));
     }
 }
