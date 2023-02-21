@@ -38,6 +38,7 @@ pub fn run<T: Fluid, U: MatrixDecomposition>(
             settings.loop_tol.inner,
             settings.max_iters.inner,
         )?;
+        let values = values.into(); // convert state equation values to engine values
         match state.update(&components, &values, settings.loop_tol.outer) {
             Ok(new_state) => {
                 state = new_state;
