@@ -1,28 +1,43 @@
-use anyhow::{bail, Result};
-
 use super::Fluid;
 
 pub struct IdealGas {
-    name: String,
+    name: Name,
     gas_constant: f64, // gas constant R in J/kg-K
     ref_temp: f64,
     cp_coefs: [f64; 6],
     enth_coefs: [f64; 6],
 }
 
+/// The available ideal gas fluids
+pub enum Name {
+    Helium,
+    Hydrogen,
+}
+
 impl IdealGas {
-    pub fn new(name: &str) -> Result<Self> {
+    /// Return an ideal gas model for helium
+    pub fn helium() -> Self {
+        Self::new(Name::Helium)
+    }
+
+    /// Return an ideal gas model for hydrogen
+    pub fn hydrogen() -> Self {
+        Self::new(Name::Hydrogen)
+    }
+
+    /// Return an ideal gas model for `name`
+    pub fn new(name: Name) -> Self {
         let IdealGasParameters {
             gas_constant,
             ref_temp,
             cp_coefs,
         } = match name {
-            "helium" => IdealGasParameters {
+            Name::Helium => IdealGasParameters {
                 gas_constant: 2077.23,
                 ref_temp: 250.,
                 cp_coefs: [5193.17, 0., 0., 0., 0., 0.],
             },
-            "hydrogen" => IdealGasParameters {
+            Name::Hydrogen => IdealGasParameters {
                 gas_constant: 4124.2,
                 ref_temp: 250.,
                 cp_coefs: [
@@ -34,7 +49,6 @@ impl IdealGas {
                     5.142_898_38e-12,
                 ],
             },
-            _ => bail!("unknown ideal gas '{name}'"),
         };
 
         // Enthalpy coefficients come from integration of cp coefficients
@@ -47,13 +61,13 @@ impl IdealGas {
             cp_coefs[5] / 6.,
         ];
 
-        Ok(Self {
-            name: name.into(),
+        Self {
+            name,
             gas_constant,
             ref_temp,
             cp_coefs,
             enth_coefs,
-        })
+        }
     }
 }
 
@@ -130,8 +144,8 @@ mod tests {
 
     impl AllProps {
         /// Return all the properties for `name` at a given `temp` and `pres`
-        fn new(name: &str, temp: f64, pres: f64) -> Self {
-            let fluid = IdealGas::new(name).expect("unknown name");
+        fn new(name: Name, temp: f64, pres: f64) -> Self {
+            let fluid = IdealGas::new(name);
             Self {
                 dens: fluid.dens(temp, pres),
                 inte: fluid.inte(temp, pres),
@@ -146,8 +160,8 @@ mod tests {
     }
 
     /// Fails if enthalpy and internal energy aren't 0 a the reference temperature
-    fn check_at_reference(name: &str) {
-        let fluid = IdealGas::new(name).expect("unknown name");
+    fn check_at_reference(name: Name) {
+        let fluid = IdealGas::new(name);
         let temp = fluid.ref_temp;
         let pres = 101e3; // arbitrarily use atmospheric pressure
         assert_eq!(
@@ -172,8 +186,8 @@ mod tests {
 
     #[test]
     fn helium() {
-        check_at_reference("helium");
-        insta::assert_yaml_snapshot!(AllProps::new("helium", 500.0, 10e6), @r###"
+        check_at_reference(Name::Helium);
+        insta::assert_yaml_snapshot!(AllProps::new(Name::Helium, 500.0, 10e6), @r###"
         ---
         dens: 9.628206794625536
         inte: 778985
@@ -188,8 +202,8 @@ mod tests {
 
     #[test]
     fn hydrogen() {
-        check_at_reference("hydrogen");
-        insta::assert_yaml_snapshot!(AllProps::new("hydrogen", 500.0, 10e6), @r###"
+        check_at_reference(Name::Hydrogen);
+        insta::assert_yaml_snapshot!(AllProps::new(Name::Hydrogen, 500.0, 10e6), @r###"
         ---
         dens: 4.849425343096843
         inte: 2462866.0072656246

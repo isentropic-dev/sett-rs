@@ -2,7 +2,7 @@ use crate::{fluid::Fluid, state_equations::Values, types::ConvergenceTolerance};
 
 use super::Components;
 
-/// The thermodynamic state of a running Stirling engine
+/// The state of a running Stirling engine
 pub struct State<T: Fluid> {
     pub fluid: T,
     pub temp: Temperatures,
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn can_create_state() {
-        let fluid = IdealGas::new("hydrogen").unwrap();
+        let fluid = IdealGas::hydrogen();
         let _state = State {
             fluid,
             temp: Temperatures {
