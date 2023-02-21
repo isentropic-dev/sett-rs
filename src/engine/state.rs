@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{fluid::Fluid, state_equations, types::ConvergenceTolerance};
 
 use super::Components;
@@ -129,6 +131,30 @@ impl Pressure {
             t_zero: value,
         }
     }
+
+    /// Calculate `Pressure` from `Values`
+    pub fn from_values(values: &Values) -> Self {
+        let t_final = values.time.last().expect("values cannot be empty");
+        let avg = integrate(&values.time, &values.P) / t_final;
+        let t_zero = values.P[0];
+        let max = *values
+            .P
+            .iter()
+            .max_by(|a, b| a.total_cmp(b))
+            .expect("values cannot be empty");
+        let min = *values
+            .P
+            .iter()
+            .min_by(|a, b| a.total_cmp(b))
+            .expect("values cannot be empty");
+
+        Self {
+            avg,
+            max,
+            min,
+            t_zero,
+        }
+    }
 }
 
 impl Temperatures {
@@ -235,6 +261,15 @@ impl From<Vec<state_equations::Values>> for Values {
     }
 }
 
+/// Integrate `y` over `x` using the trapezoidal rule
+fn integrate(x: &[f64], y: &[f64]) -> f64 {
+    let xs = x.iter().tuple_windows();
+    let ys = y.iter().tuple_windows();
+    xs.zip(ys)
+        .map(|((x0, x1), (y0, y1))| (y1 + y0) * (x1 - x0) * 0.5)
+        .sum()
+}
+
 #[cfg(test)]
 mod tests {
     use crate::fluid::IdealGas;
@@ -252,5 +287,45 @@ mod tests {
             heat_flow: HeatFlows::constant(1.0),
             regen_imbalance: RegenImbalance::default(),
         };
+    }
+
+    #[test]
+    fn pressure_from_values() {
+        // Constant pressure
+        let values = Values {
+            time: vec![0.0, 10.0],
+            P: vec![1.0, 1.0],
+            ..Values::default()
+        };
+        let expected = Pressure::constant(1.0);
+        assert_eq!(expected, Pressure::from_values(&values));
+
+        // Simple integration
+        let values = Values {
+            time: vec![0.0, 1.0, 2.0],
+            P: vec![100.0, 200.0, 100.0],
+            ..Values::default()
+        };
+        let expected = Pressure {
+            avg: 150.0,
+            max: 200.0,
+            min: 100.0,
+            t_zero: 100.0,
+        };
+        assert_eq!(expected, Pressure::from_values(&values));
+
+        // Integration with more points
+        let values = Values {
+            time: vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0],
+            P: vec![1.2e3, 2.5e3, 1.9e2, 1.7e2, 3.2e3, 8.8e3, 6.5e3, 1.4e3, 2e2],
+            ..Values::default()
+        };
+        let expected = Pressure {
+            avg: 2932.5,
+            max: 8800.0,
+            min: 170.0,
+            t_zero: 1200.0,
+        };
+        assert_eq!(expected, Pressure::from_values(&values));
     }
 }
