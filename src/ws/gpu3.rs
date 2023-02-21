@@ -1,31 +1,21 @@
-use std::fmt;
-
-use crate::ParasiticPower;
-
-use super::{Spaces, ThermalResistance, WorkingSpaces};
+use super::{CompVolume, ExpVolume, Parasitics, State, ThermalResistance, WorkingSpaces};
 
 pub struct GPU3 {}
 
 impl WorkingSpaces for GPU3 {
-    fn frequency(&self) -> f64 {
+    fn frequency(&self, _state: &State) -> f64 {
         todo!()
     }
 
-    fn spaces(&self, _t: f64) -> Spaces {
+    fn volumes(&self, _state: &State) -> Box<(dyn Fn(f64) -> (CompVolume, ExpVolume))> {
         todo!()
     }
 
-    fn thermal_resistance(&self) -> ThermalResistance {
+    fn thermal_resistance(&self, _state: &State) -> ThermalResistance {
         todo!()
     }
 
-    fn parasitics(&self) -> ParasiticPower {
+    fn parasitics(&self, _state: &State) -> Parasitics {
         todo!()
-    }
-}
-
-impl fmt::Display for GPU3 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "GPU-3 working spaces")
     }
 }

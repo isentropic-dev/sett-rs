@@ -1,52 +1,62 @@
-use crate::{chx, fluid, hhx, regen, ws};
+mod run;
+pub mod state;
 
-/// Represents a Stirling engine
-pub struct Engine {
-    pub fluid: Box<dyn fluid::WorkingFluid>,
+use crate::{chx, fluid::Fluid, hhx, regen, state_equations::Values, ws};
+
+/// The components of a Stirling engine
+pub struct Components {
     pub ws: Box<dyn ws::WorkingSpaces>,
     pub chx: Box<dyn chx::ColdHeatExchanger>,
     pub regen: Box<dyn regen::Regenerator>,
     pub hhx: Box<dyn hhx::HotHeatExchanger>,
 }
 
+/// Represents a Stirling engine running at cyclic steady state
+pub struct Engine<T: Fluid> {
+    pub components: Components,
+    pub state: state::State<T>,
+    pub values: Vec<Values>,
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::ws::{sinusoidal_drive, Parasitics, ThermalResistance};
+    use crate::ws::{sinusoidal_drive::Geometry, Parasitics, ThermalResistance};
 
     use super::*;
 
     fn chx_fixed_approach() -> Box<chx::FixedApproach> {
-        Box::new(chx::FixedApproach::default())
+        Box::<chx::FixedApproach>::default()
     }
 
     fn hhx_fixed_approach() -> Box<hhx::FixedApproach> {
-        Box::new(hhx::FixedApproach::default())
+        Box::<hhx::FixedApproach>::default()
     }
 
     fn regen_fixed_approach() -> Box<regen::FixedApproach> {
-        Box::new(regen::FixedApproach::default())
+        Box::<regen::FixedApproach>::default()
     }
 
-    #[test]
-    fn create_engine() {
-        let fluid = Box::new(fluid::IdealGas::new("Hydrogen"));
-        let ws = Box::new(sinusoidal_drive::SinusoidalDrive {
+    fn ws_sinusoidal() -> Box<ws::SinusoidalDrive> {
+        Box::new(ws::SinusoidalDrive {
             frequency: 10.0,
             phase_angle: 90.0,
-            comp_geometry: sinusoidal_drive::Geometry {
+            comp_geometry: Geometry {
                 clearance_volume: 1e-5,
                 swept_volume: 2e-4,
             },
-            exp_geometry: sinusoidal_drive::Geometry {
+            exp_geometry: Geometry {
                 clearance_volume: 3e-5,
                 swept_volume: 4e-4,
             },
             thermal_resistance: ThermalResistance::default(),
             parasitics: Parasitics::default(),
-        });
-        let _engine = Engine {
-            fluid,
-            ws,
+        })
+    }
+
+    #[test]
+    fn create_components() {
+        let _components = Components {
+            ws: ws_sinusoidal(),
             chx: chx_fixed_approach(),
             regen: regen_fixed_approach(),
             hhx: hhx_fixed_approach(),

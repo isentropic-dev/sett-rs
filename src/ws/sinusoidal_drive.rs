@@ -1,8 +1,7 @@
 use std::f64::consts::PI;
 
-use super::{Parasitics, ThermalResistance, Volumes, WorkingSpaces};
+use super::{CompVolume, ExpVolume, Parasitics, State, ThermalResistance, WorkingSpaces};
 
-#[allow(non_snake_case)]
 pub struct SinusoidalDrive {
     pub frequency: f64,
     pub phase_angle: f64,
@@ -18,38 +17,40 @@ pub struct Geometry {
 }
 
 impl WorkingSpaces for SinusoidalDrive {
-    fn frequency(&self, _state: &super::State) -> f64 {
+    fn frequency(&self, _state: &State) -> f64 {
         self.frequency
     }
 
-    fn volumes(&self, _state: &super::State) -> Box<(dyn Fn(f64) -> Volumes)> {
+    fn volumes(&self, _state: &State) -> Box<(dyn Fn(f64) -> (CompVolume, ExpVolume))> {
         let vol_clear_c = self.comp_geometry.clearance_volume;
         let vol_swept_c = self.comp_geometry.swept_volume;
+
         let vol_clear_e = self.exp_geometry.clearance_volume;
         let vol_swept_e = self.exp_geometry.swept_volume;
+
         let omega = 2.0 * PI * self.frequency; // angular velocity (rad/s)
         let phase_angle_rad = self.phase_angle * PI / 180.0; // convert degrees to radians
+
         Box::new(move |time: f64| {
             let theta = omega * time; // rotation (rad)
-            Volumes {
-                V_c: vol_clear_c + 0.5 * vol_swept_c * (1.0 + theta.cos()),
-                V_e: vol_clear_e + 0.5 * vol_swept_e * (1.0 + (theta + phase_angle_rad).cos()),
-                dVc_dt: -0.5 * vol_swept_c * theta.sin() * omega,
-                dVe_dt: -0.5 * vol_swept_e * (theta + phase_angle_rad).sin() * omega,
-            }
+            let comp = CompVolume {
+                value: vol_clear_c + 0.5 * vol_swept_c * (1.0 + theta.cos()),
+                deriv: -0.5 * vol_swept_c * theta.sin() * omega,
+            };
+            let exp = ExpVolume {
+                value: vol_clear_e + 0.5 * vol_swept_e * (1.0 + (theta + phase_angle_rad).cos()),
+                deriv: -0.5 * vol_swept_e * (theta + phase_angle_rad).sin() * omega,
+            };
+            (comp, exp)
         })
     }
 
-    fn thermal_resistance(&self, _state: &super::State) -> ThermalResistance {
+    fn thermal_resistance(&self, _state: &State) -> ThermalResistance {
         self.thermal_resistance
     }
 
-    fn parasitics(&self, _state: &super::State) -> Parasitics {
+    fn parasitics(&self, _state: &State) -> Parasitics {
         self.parasitics
-    }
-
-    fn report(&self, _state: &super::State) -> String {
-        "Sinusoidal drive working spaces".to_string()
     }
 }
 
@@ -57,7 +58,7 @@ impl WorkingSpaces for SinusoidalDrive {
 mod tests {
     use approx::{assert_relative_eq, relative_eq};
 
-    use crate::ws::State;
+    use crate::engine::state::Pressure as EnginePressure;
 
     use super::*;
 
@@ -81,57 +82,58 @@ mod tests {
             thermal_resistance: ThermalResistance::default(),
             parasitics: Parasitics::default(),
         };
-        let state = State::new(0.0, 0.0); // required but not used by this component
-        let volumes = drive.volumes(&state); // volumes as a function of time
+        let volumes = drive.volumes(&State {
+            pres: EnginePressure::constant(0.0),
+        }); // volumes as a function of time
 
-        let vol_0 = volumes(0.0); // volumes at time zero
-        let vol_25 = volumes(0.025); // volumes at 25 ms (1/4 through cycle)
-        let vol_50 = volumes(0.05); // volumes at 50 ms (1/2 through cycle)
-        let vol_75 = volumes(0.075); // volumes at 75 ms (3/4 through cycle)
-        let vol_final = volumes(0.1); // volumes at end of cycle
+        let (vol_c_0, vol_e_0) = volumes(0.0); // volumes at time zero
+        let (_, vol_e_25) = volumes(0.025); // volumes at 25 ms (1/4 through cycle)
+        let (vol_c_50, _) = volumes(0.05); // volumes at 50 ms (1/2 through cycle)
+        let (_, vol_e_75) = volumes(0.075); // volumes at 75 ms (3/4 through cycle)
+        let (vol_c_final, vol_e_final) = volumes(0.1); // volumes at end of cycle
 
         // Values at t_initial and t_final should match
-        assert_relative_eq!(vol_0.V_c, vol_final.V_c);
-        assert_relative_eq!(vol_0.V_e, vol_final.V_e);
-        assert_relative_eq!(vol_0.dVc_dt, vol_final.dVc_dt);
-        assert_relative_eq!(vol_0.dVe_dt, vol_final.dVe_dt);
+        assert_relative_eq!(vol_c_0.value, vol_c_final.value);
+        assert_relative_eq!(vol_c_0.deriv, vol_c_final.deriv);
+        assert_relative_eq!(vol_e_0.value, vol_e_final.value);
+        assert_relative_eq!(vol_e_0.deriv, vol_e_final.deriv);
 
         // Check values at interesting points in the cycle
         assert_eq!(
-            vol_0.V_c,
+            vol_c_0.value,
             clear_vol_c + swept_vol_c,
             "max compression volume is at time zero"
         );
         assert_eq!(
-            vol_0.dVc_dt, 0.0,
+            vol_c_0.deriv, 0.0,
             "compression piston is not moving at time zero"
         );
 
         assert_eq!(
-            vol_25.V_e, clear_vol_e,
+            vol_e_25.value, clear_vol_e,
             "min expansion volume is 1/4 through cycle" // this is known from 90 deg phase angle
         );
         assert!(
-            relative_eq!(vol_25.dVe_dt, 0.0),
+            relative_eq!(vol_e_25.deriv, 0.0),
             "expansion piston is not moving 1/4 through cycle"
         );
 
         assert_eq!(
-            vol_50.V_c, clear_vol_c,
+            vol_c_50.value, clear_vol_c,
             "min compression volume is 1/2 through cycle"
         );
         assert!(
-            relative_eq!(vol_50.dVc_dt, 0.0),
+            relative_eq!(vol_c_50.deriv, 0.0),
             "compression piston is not moving 1/2 through cycle"
         );
 
         assert_eq!(
-            vol_75.V_e,
+            vol_e_75.value,
             clear_vol_e + swept_vol_e,
             "max expansion volume is 3/4 through cycle"
         );
         assert!(
-            relative_eq!(vol_75.dVe_dt, 0.0),
+            relative_eq!(vol_e_75.deriv, 0.0),
             "expansion piston is not moving 3/4 through cycle"
         );
     }

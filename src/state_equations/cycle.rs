@@ -13,6 +13,9 @@ pub trait Cycle: Sized {
     /// Return the period in seconds for the cycle
     fn period(&self) -> f64;
 
+    /// Return the pressure in Pa at time zero in the cycle
+    fn pres_zero(&self) -> f64;
+
     /// Attempt to integrate the state equations
     fn integrate(
         &self,
