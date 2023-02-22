@@ -75,15 +75,43 @@ pub struct MaxIters {
 
 /// Create an `engine::Run` for a specific matrix solver
 #[allow(clippy::similar_names)]
-fn create_run<'a, T: Fluid, U: MatrixDecomposition>(
-    _components: &'a Components,
-    _state: &'a State<T>,
+pub(super) fn create_run<'a, T: Fluid, U: MatrixDecomposition>(
+    components: &'a Components,
+    state: &'a State<T>,
 ) -> Run<'a, T, U> {
-    todo!()
+    // Calculate an average enthalpy using the sink and source temperatures
+    let h_sink = state.fluid.enth(state.temp.sink, state.pres.avg);
+    let h_source = state.fluid.enth(state.temp.source, state.pres.avg);
+    let enth_norm = 0.5 * (h_sink + h_source);
+
+    // Ask heat exchanger components for their volumes
+    let vol_chx = components.chx.volume();
+    let vol_regen = components.regen.volume();
+    let vol_hhx = components.hhx.volume();
+
+    // Ask working spaces component for its properties
+    let ws_state = state.ws();
+    let period = 1.0 / components.ws.frequency(&ws_state);
+    let ws_vol_fn = components.ws.volumes(&ws_state);
+    let ws_parasitics = components.ws.parasitics(&ws_state);
+
+    Run {
+        enth_norm,
+        fluid: &state.fluid,
+        period,
+        pres: state.pres,
+        solver: PhantomData,
+        temp: state.temp,
+        vol_chx,
+        vol_hhx,
+        vol_regen,
+        ws_parasitics,
+        ws_vol_fn,
+    }
 }
 
 /// Information needed to implement `Cycle`
-struct Run<'a, T: Fluid, U: MatrixDecomposition> {
+pub(super) struct Run<'a, T: Fluid, U: MatrixDecomposition> {
     enth_norm: f64,
     fluid: &'a T,
     period: f64,

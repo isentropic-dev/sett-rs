@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::{fluid::Fluid, state_equations, types::ConvergenceTolerance, ws::ThermalResistance};
+use crate::{chx, fluid::Fluid, hhx, regen, state_equations, types::ConvergenceTolerance, ws};
 
 use super::Components;
 
@@ -118,6 +118,55 @@ impl<T: Fluid> State<T> {
     ) -> Result<Self, Self> {
         todo!()
     }
+
+    /// Return the `ws::State` that corresponds to this `engine::State`
+    pub(super) fn ws(&self) -> ws::State {
+        ws::State { pres: self.pres }
+    }
+
+    /// Return the `chx::State` that corresponds to this `engine::State`
+    pub(super) fn chx(&self) -> chx::State {
+        chx::State {
+            hxr: HeatExchanger {
+                temp: self.temp.chx,
+                pres: self.pres.avg,
+                dens: self.fluid.dens(self.temp.chx, self.pres.avg),
+                cp: self.fluid.cp(self.temp.chx, self.pres.avg),
+                m_dot: self.mass_flow.chx,
+                Q_dot: self.heat_flow.chx,
+            },
+            sink_temp: self.temp.sink,
+        }
+    }
+
+    /// Return the `regen::State` that corresponds to this `engine::State`
+    pub(super) fn regen(&self) -> regen::State {
+        regen::State {
+            hxr: HeatExchanger {
+                temp: self.temp.regen_avg,
+                pres: self.pres.avg,
+                dens: self.fluid.dens(self.temp.regen_avg, self.pres.avg),
+                cp: self.fluid.cp(self.temp.regen_avg, self.pres.avg),
+                m_dot: self.mass_flow.regen,
+                Q_dot: self.heat_flow.regen,
+            },
+        }
+    }
+
+    /// Return the `hhx::State` that corresponds to this `engine::State`
+    pub(super) fn hhx(&self) -> hhx::State {
+        hhx::State {
+            hxr: HeatExchanger {
+                temp: self.temp.hhx,
+                pres: self.pres.avg,
+                dens: self.fluid.dens(self.temp.hhx, self.pres.avg),
+                cp: self.fluid.cp(self.temp.hhx, self.pres.avg),
+                m_dot: self.mass_flow.hhx,
+                Q_dot: self.heat_flow.hhx,
+            },
+            source_temp: self.temp.source,
+        }
+    }
 }
 
 impl Pressure {
@@ -219,7 +268,7 @@ impl HeatFlows {
         values: &Values,
         temp_chx: f64,
         temp_hhx: f64,
-        thermal_res: ThermalResistance,
+        thermal_res: ws::ThermalResistance,
     ) -> Self {
         let t_final = values.final_time();
 
@@ -459,7 +508,7 @@ mod tests {
         };
         let temp_chx = 300.0;
         let temp_hhx = 800.0;
-        let thermal_res = ThermalResistance::default(); // default is `f64::INFINITY`
+        let thermal_res = ws::ThermalResistance::default(); // default is `f64::INFINITY`
         let expected = HeatFlows {
             chx: 1.0,
             regen: 0.0,
@@ -479,7 +528,7 @@ mod tests {
         };
         let temp_chx = 300.0;
         let temp_hhx = 800.0;
-        let thermal_res = ThermalResistance {
+        let thermal_res = ws::ThermalResistance {
             comp: 1.0,
             exp: 50.0,
         };
