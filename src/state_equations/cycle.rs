@@ -28,26 +28,34 @@ pub trait Cycle: Sized {
 
     /// Determine the values that correspond to cyclic steady state
     ///
-    /// Cyclic steady state is when the conditions (`P`, `T_c`, and `T_e`) at
-    /// the end of the cycle are equal to those at the start.
+    /// Cyclic steady state occurs when the temperature conditions (`T_c` and
+    /// `T_e`) at the end of the cycle are equal to those at the start.
     fn find_steady_state(
         &self,
+        pres_zero: f64,
+        temp_hint: (f64, f64), // (T_c, T_e)
         num_points: u32,
-        ic_hint: Conditions,
         ode_tol: OdeTolerance,
         conv_tol: ConvergenceTolerance,
         max_iter: usize,
     ) -> Result<Vec<Values>> {
         // Use successive substition to find the right initial conditions
         // TODO: Create an abstraction of this so we can try different convergence methods
-        let mut ic = ic_hint;
+        let mut ic = Conditions {
+            P: pres_zero,
+            T_c: temp_hint.0,
+            T_e: temp_hint.1,
+        };
         for _ in 0..max_iter {
             let integration = Integration::try_from(self, ic, 2, ode_tol)?; // using 2 points here is faster and doesn't affect integration
             if integration.is_converged(conv_tol) {
                 let integration = Integration::try_from(self, ic, num_points, ode_tol)?;
                 return Ok(integration.into_state_values());
             }
-            ic = integration.final_conditions(); // successive substitution
+            ic = Conditions {
+                P: pres_zero,
+                ..integration.final_conditions() // succesive substitution
+            };
         }
 
         bail!("did not converge")

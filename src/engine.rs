@@ -7,7 +7,7 @@ use crate::{
     chx,
     fluid::Fluid,
     hhx, regen,
-    state_equations::{Conditions, Cycle, MatrixDecomposition},
+    state_equations::{Cycle, MatrixDecomposition},
     types::RunSettings,
     ws,
 };
@@ -39,14 +39,10 @@ impl<T: Fluid> Engine<T> {
         let mut state = state_hint;
         for _ in 0..settings.max_iters.outer {
             let run: run::Run<T, U> = run::Run::new(&components, &state);
-            let ic_hint = Conditions {
-                P: state.pres.t_zero,
-                T_c: state.temp.chx,
-                T_e: state.temp.hhx,
-            };
             let values = run.find_steady_state(
+                state.pres.t_zero,
+                (state.temp.chx, state.temp.hhx),
                 settings.resolution,
-                ic_hint,
                 settings.ode_tol,
                 settings.loop_tol.inner,
                 settings.max_iters.inner,

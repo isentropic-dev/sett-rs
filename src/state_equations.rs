@@ -155,17 +155,12 @@ mod tests {
         let engine = TestEngine::from_file("refprop_hydrogen.json");
 
         let num_points = 100;
-        let ic_hint = Conditions {
-            P: 10e6,
-            T_c: 300.0,
-            T_e: 500.0,
-        };
         let ode_tol = OdeTolerance::new(1e-4, 1e-4);
         let conv_tol = ConvergenceTolerance::new(1e-4, 1e-4);
         let max_iter = 20;
 
         engine
-            .find_steady_state(num_points, ic_hint, ode_tol, conv_tol, max_iter)
+            .find_steady_state(10e6, (300., 500.), num_points, ode_tol, conv_tol, max_iter)
             .expect_err("should not find steady state");
     }
 }
