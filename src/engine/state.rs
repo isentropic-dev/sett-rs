@@ -1,6 +1,12 @@
 use itertools::Itertools;
 
-use crate::{chx, fluid::Fluid, hhx, regen, state_equations, types::ConvergenceTolerance, ws};
+use crate::{
+    chx,
+    fluid::Fluid,
+    hhx, regen, state_equations,
+    types::{ConvergenceTolerance, HeatExchanger},
+    ws,
+};
 
 use super::Components;
 
@@ -76,7 +82,7 @@ pub struct RegenImbalance(f64);
 
 /// Time-discretized state values within a Stirling engine
 #[allow(non_snake_case)]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Values {
     pub time: Vec<f64>,
     pub P: Vec<f64>,
@@ -91,17 +97,6 @@ pub struct Values {
     pub Q_dot_l: Vec<f64>,
 }
 
-/// Average conditions in a heat exchanger
-#[allow(non_snake_case)]
-pub struct HeatExchanger {
-    pub temp: f64,
-    pub pres: f64,
-    pub dens: f64,
-    pub cp: f64,
-    pub m_dot: f64,
-    pub Q_dot: f64,
-}
-
 impl<T: Fluid> State<T> {
     /// Return `self` updated from new `state_equations::Values`
     ///
@@ -109,14 +104,18 @@ impl<T: Fluid> State<T> {
     /// `values` do not change the `State` within `tol`, then the original
     /// `State` is returned as `Err(self)`.
     #[allow(clippy::result_large_err)]
-    #[allow(clippy::unused_self)] // TODO: remove when function is implemented
     pub fn update(
         self,
         _components: &Components,
         _values: &Values,
-        _tol: ConvergenceTolerance,
+        tol: ConvergenceTolerance,
     ) -> Result<Self, Self> {
-        todo!()
+        // TODO: For now we will assume components are always converged unless tol is very small
+        if tol.abs < 1e-9 {
+            Ok(self)
+        } else {
+            Err(self)
+        }
     }
 
     /// Return the `ws::State` that corresponds to this `engine::State`

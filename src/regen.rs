@@ -9,7 +9,7 @@ pub use fixed_conductance::FixedConductance;
 pub use gpu3::GPU3;
 pub use mod2::Mod2;
 
-use crate::{engine::state::HeatExchanger, types::ParasiticPower};
+use crate::types::{HeatExchanger, ParasiticPower};
 
 /// Allows a type to act as a regenerator
 pub trait Regenerator {

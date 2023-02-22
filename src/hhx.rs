@@ -13,7 +13,7 @@ pub use mod2::Mod2;
 pub use ni_gpu3::NuclearIsomerGPU3;
 pub use ni_mod2::NuclearIsomerMod2;
 
-use crate::{engine::state::HeatExchanger, types::ParasiticPower};
+use crate::types::{HeatExchanger, ParasiticPower};
 
 /// Allows a type to act as a hot heat exchanger
 pub trait HotHeatExchanger {

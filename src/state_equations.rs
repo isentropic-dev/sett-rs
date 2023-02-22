@@ -15,6 +15,9 @@ pub use self::{
     inputs::Regenerator as RegeneratorInputs, inputs::WorkingSpace as WorkingSpaceInputs,
 };
 
+// Export matrix decomposition solvers
+pub use self::solver::{SvdDefault as SvdDefaultSolver, LU as LuSolver, QR as QrSolver};
+
 /// Conditions within the cycle
 ///
 /// `P`   -- pressure (Pa) in all control volumes

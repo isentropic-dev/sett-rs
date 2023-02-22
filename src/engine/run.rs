@@ -1,114 +1,18 @@
 use std::marker::PhantomData;
 
-use anyhow::{bail, Result};
-
 use crate::{
     fluid::Fluid,
     state_equations::{
         Conditions, Cycle, HeatExchangerInputs, Inputs as StateEquationInputs, MatrixDecomposition,
         RegeneratorInputs, WorkingSpaceInputs,
     },
-    types::{ConvergenceTolerance, OdeTolerance},
     ws,
 };
 
 use super::{
     state::{Pressure, State, Temperatures},
-    Components, Engine,
+    Components,
 };
-
-/// Attempt to create a running `Engine`
-pub fn run<T: Fluid, U: MatrixDecomposition>(
-    components: Components,
-    state_hint: State<T>,
-    settings: &Settings,
-) -> Result<Engine<T>> {
-    let mut state = state_hint;
-    for _ in 0..settings.max_iters.outer {
-        let run = create_run::<T, U>(&components, &state);
-        let ic_hint = Conditions {
-            P: state.pres.t_zero,
-            T_c: 0.5 * (state.temp.sink + state.temp.chx),
-            T_e: 0.5 * (state.temp.source + state.temp.hhx),
-        };
-        let values = run.find_steady_state(
-            settings.resolution,
-            ic_hint,
-            settings.ode_tol,
-            settings.loop_tol.inner,
-            settings.max_iters.inner,
-        )?;
-        let values = values.into(); // convert state equation values to engine values
-        match state.update(&components, &values, settings.loop_tol.outer) {
-            Ok(new_state) => {
-                state = new_state;
-            }
-            Err(state) => {
-                return Ok(Engine {
-                    components,
-                    state,
-                    values,
-                });
-            }
-        };
-    }
-
-    bail!("not converged")
-}
-
-pub struct Settings {
-    pub resolution: u32,
-    pub loop_tol: LoopTolerance,
-    pub ode_tol: OdeTolerance,
-    pub max_iters: MaxIters,
-}
-
-pub struct LoopTolerance {
-    pub inner: ConvergenceTolerance,
-    pub outer: ConvergenceTolerance,
-}
-
-pub struct MaxIters {
-    pub inner: usize,
-    pub outer: usize,
-}
-
-/// Create an `engine::Run` for a specific matrix solver
-#[allow(clippy::similar_names)]
-pub(super) fn create_run<'a, T: Fluid, U: MatrixDecomposition>(
-    components: &'a Components,
-    state: &'a State<T>,
-) -> Run<'a, T, U> {
-    // Calculate an average enthalpy using the sink and source temperatures
-    let h_sink = state.fluid.enth(state.temp.sink, state.pres.avg);
-    let h_source = state.fluid.enth(state.temp.source, state.pres.avg);
-    let enth_norm = 0.5 * (h_sink + h_source);
-
-    // Ask heat exchanger components for their volumes
-    let vol_chx = components.chx.volume();
-    let vol_regen = components.regen.volume();
-    let vol_hhx = components.hhx.volume();
-
-    // Ask working spaces component for its properties
-    let ws_state = state.ws();
-    let period = 1.0 / components.ws.frequency(&ws_state);
-    let ws_vol_fn = components.ws.volumes(&ws_state);
-    let ws_parasitics = components.ws.parasitics(&ws_state);
-
-    Run {
-        enth_norm,
-        fluid: &state.fluid,
-        period,
-        pres: state.pres,
-        solver: PhantomData,
-        temp: state.temp,
-        vol_chx,
-        vol_hhx,
-        vol_regen,
-        ws_parasitics,
-        ws_vol_fn,
-    }
-}
 
 /// Information needed to implement `Cycle`
 pub(super) struct Run<'a, T: Fluid, U: MatrixDecomposition> {
@@ -125,7 +29,41 @@ pub(super) struct Run<'a, T: Fluid, U: MatrixDecomposition> {
     ws_vol_fn: Box<dyn Fn(f64) -> (ws::CompVolume, ws::ExpVolume)>,
 }
 
-impl<T: Fluid, U: MatrixDecomposition> Run<'_, T, U> {
+impl<'a, T: Fluid, U: MatrixDecomposition> Run<'a, T, U> {
+    /// Create an `Run` for a specific matrix solver
+    #[allow(clippy::similar_names)]
+    pub(super) fn new(components: &'a Components, state: &'a State<T>) -> Self {
+        // Calculate an average enthalpy using the sink and source temperatures
+        let h_sink = state.fluid.enth(state.temp.sink, state.pres.avg);
+        let h_source = state.fluid.enth(state.temp.source, state.pres.avg);
+        let enth_norm = 0.5 * (h_sink + h_source);
+
+        // Ask heat exchanger components for their volumes
+        let vol_chx = components.chx.volume();
+        let vol_regen = components.regen.volume();
+        let vol_hhx = components.hhx.volume();
+
+        // Ask working spaces component for its properties
+        let ws_state = state.ws();
+        let period = 1.0 / components.ws.frequency(&ws_state);
+        let ws_vol_fn = components.ws.volumes(&ws_state);
+        let ws_parasitics = components.ws.parasitics(&ws_state);
+
+        Self {
+            enth_norm,
+            fluid: &state.fluid,
+            period,
+            pres: state.pres,
+            solver: PhantomData,
+            temp: state.temp,
+            vol_chx,
+            vol_hhx,
+            vol_regen,
+            ws_parasitics,
+            ws_vol_fn,
+        }
+    }
+
     fn comp_inputs(&self, vol: ws::CompVolume, temp: f64, pres: f64) -> WorkingSpaceInputs {
         WorkingSpaceInputs {
             vol: vol.value,

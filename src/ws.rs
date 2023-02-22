@@ -9,7 +9,7 @@ pub use mod2::Mod2;
 pub use rhombic_drive::RhombicDrive;
 pub use sinusoidal_drive::SinusoidalDrive;
 
-use crate::{engine::state::Pressure as EnginePressure, types::ParasiticPower};
+use crate::{engine::Pressure, types::ParasiticPower};
 
 pub trait WorkingSpaces {
     /// Returns the frequency (Hz) of the engine
@@ -68,5 +68,5 @@ pub struct Parasitics {
 
 /// Information available to a ws component for calculating its parameters
 pub struct State {
-    pub pres: EnginePressure,
+    pub pres: Pressure,
 }

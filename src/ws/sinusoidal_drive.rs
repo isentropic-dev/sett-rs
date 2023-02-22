@@ -58,7 +58,7 @@ impl WorkingSpaces for SinusoidalDrive {
 mod tests {
     use approx::{assert_relative_eq, relative_eq};
 
-    use crate::engine::state::Pressure as EnginePressure;
+    use crate::engine::Pressure;
 
     use super::*;
 
@@ -83,7 +83,7 @@ mod tests {
             parasitics: Parasitics::default(),
         };
         let volumes = drive.volumes(&State {
-            pres: EnginePressure::constant(0.0),
+            pres: Pressure::constant(0.0),
         }); // volumes as a function of time
 
         let (vol_c_0, vol_e_0) = volumes(0.0); // volumes at time zero

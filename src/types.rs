@@ -1,14 +1,24 @@
-/// Represents the environment an engine is run in
-#[derive(Debug, Clone, Copy)]
-pub struct Environment {
-    /// The lowest temperature (K) available to the engine
-    pub sink_temp: f64,
-
-    /// The highest temperature (K) available to the engine
-    pub source_temp: f64,
+/// Settings used to run an engine
+pub struct RunSettings {
+    pub resolution: u32,
+    pub loop_tol: LoopTolerance,
+    pub ode_tol: OdeTolerance,
+    pub max_iters: MaxIters,
 }
 
-/// Represents parasitic power loss in a component
+/// Tolerances related to the two iteration loops
+pub struct LoopTolerance {
+    pub inner: ConvergenceTolerance,
+    pub outer: ConvergenceTolerance,
+}
+
+/// Number of iterations to try before failing
+pub struct MaxIters {
+    pub inner: usize,
+    pub outer: usize,
+}
+
+/// Parasitic power loss in a component
 ///
 /// Each type of power has units of watts (W).
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -18,9 +28,27 @@ pub struct ParasiticPower {
     pub electrical: f64,
 }
 
+/// Average conditions in a heat exchanger
+#[allow(non_snake_case)]
+pub struct HeatExchanger {
+    pub temp: f64,
+    pub pres: f64,
+    pub dens: f64,
+    pub cp: f64,
+    pub m_dot: f64,
+    pub Q_dot: f64,
+}
+
 /// Tolerances used by the ODE integrator
 #[derive(Debug, Clone, Copy)]
 pub struct OdeTolerance {
+    pub abs: f64,
+    pub rel: f64,
+}
+
+/// Tolerances related to convergence between subsequent values
+#[derive(Debug, Clone, Copy)]
+pub struct ConvergenceTolerance {
     pub abs: f64,
     pub rel: f64,
 }
@@ -29,13 +57,6 @@ impl OdeTolerance {
     pub fn new(abs: f64, rel: f64) -> Self {
         Self { abs, rel }
     }
-}
-
-/// Tolerances related to convergence between subsequent values
-#[derive(Debug, Clone, Copy)]
-pub struct ConvergenceTolerance {
-    pub abs: f64,
-    pub rel: f64,
 }
 
 impl ConvergenceTolerance {
