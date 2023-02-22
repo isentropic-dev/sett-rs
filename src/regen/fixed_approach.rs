@@ -33,7 +33,7 @@ impl FixedApproach {
 }
 
 impl Regenerator for FixedApproach {
-    fn volume(&self, _state: &State) -> f64 {
+    fn volume(&self) -> f64 {
         self.volume
     }
 

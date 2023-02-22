@@ -5,7 +5,7 @@ use super::{HotHeatExchanger, State};
 pub struct NuclearIsomerGPU3 {}
 
 impl HotHeatExchanger for NuclearIsomerGPU3 {
-    fn volume(&self, _state: &State) -> f64 {
+    fn volume(&self) -> f64 {
         todo!()
     }
 

@@ -13,7 +13,7 @@ pub use mod2::Mod2;
 pub use ni_gpu3::NuclearIsomerGPU3;
 pub use ni_mod2::NuclearIsomerMod2;
 
-use crate::types::{Environment, ParasiticPower};
+use crate::{engine::state::HeatExchanger, types::ParasiticPower};
 
 /// Allows a type to act as a hot heat exchanger
 pub trait HotHeatExchanger {
@@ -21,7 +21,7 @@ pub trait HotHeatExchanger {
     ///
     /// The internal volume is the volume in cubic meters (m^3) that is
     /// occupied by the working fluid inside the heat exchanger.
-    fn volume(&self, state: &State) -> f64;
+    fn volume(&self) -> f64;
 
     /// Returns the approach temperature of the heat exchanger
     ///
@@ -38,20 +38,8 @@ pub trait HotHeatExchanger {
     fn parasitics(&self, state: &State) -> ParasiticPower;
 }
 
-/// Information available to a component for calculating cycle parameters
+/// Information available to a hhx component for calculating its parameters
 pub struct State {
-    env: Environment,
-    avg: Average,
-}
-
-#[allow(non_snake_case)]
-pub struct Average {
-    temp: f64,
-    pres: f64,
-    dens: f64,
-    inte: f64, // TODO: needed?
-    enth: f64, // TODO: needed?
-    cp: f64,
-    m_dot: f64,
-    Q_dot: f64,
+    pub hxr: HeatExchanger,
+    pub source_temp: f64,
 }

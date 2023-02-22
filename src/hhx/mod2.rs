@@ -5,7 +5,7 @@ use super::{HotHeatExchanger, State};
 pub struct Mod2 {}
 
 impl HotHeatExchanger for Mod2 {
-    fn volume(&self, _state: &State) -> f64 {
+    fn volume(&self) -> f64 {
         todo!()
     }
     fn approach(&self, _state: &State) -> f64 {
