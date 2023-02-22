@@ -1,7 +1,7 @@
 mod run;
 pub mod state;
 
-use crate::{chx, fluid::Fluid, hhx, regen, state_equations::Values, ws};
+use crate::{chx, fluid::Fluid, hhx, regen, ws};
 
 /// The components of a Stirling engine
 pub struct Components {
@@ -15,7 +15,7 @@ pub struct Components {
 pub struct Engine<T: Fluid> {
     pub components: Components,
     pub state: state::State<T>,
-    pub values: Vec<Values>,
+    pub values: state::Values,
 }
 
 #[cfg(test)]
