@@ -89,7 +89,6 @@ pub struct Values {
     pub Q_dot_k: Vec<f64>,
     pub Q_dot_r: Vec<f64>,
     pub Q_dot_l: Vec<f64>,
-    pub dP_dt: Vec<f64>,
 }
 
 /// Average conditions in a heat exchanger
@@ -294,22 +293,20 @@ impl From<Vec<state_equations::Values>> for Values {
         let mut Q_dot_k = Vec::with_capacity(size);
         let mut Q_dot_r = Vec::with_capacity(size);
         let mut Q_dot_l = Vec::with_capacity(size);
-        let mut dP_dt = Vec::with_capacity(size);
 
         // Fill vectors using a single iteration over values
-        for (i, v) in values.into_iter().enumerate() {
-            time[i] = v.time;
-            P[i] = v.conditions.P;
-            T_c[i] = v.conditions.T_c;
-            T_e[i] = v.conditions.T_e;
-            m_dot_ck[i] = v.solution.m_dot_ck;
-            m_dot_kr[i] = v.solution.m_dot_kr;
-            m_dot_rl[i] = v.solution.m_dot_rl;
-            m_dot_le[i] = v.solution.m_dot_le;
-            Q_dot_k[i] = v.solution.Q_dot_k;
-            Q_dot_r[i] = v.solution.Q_dot_r;
-            Q_dot_l[i] = v.solution.Q_dot_l;
-            dP_dt[i] = v.solution.dP_dt;
+        for value in values {
+            time.push(value.time);
+            P.push(value.conditions.P);
+            T_c.push(value.conditions.T_c);
+            T_e.push(value.conditions.T_e);
+            m_dot_ck.push(value.solution.m_dot_ck);
+            m_dot_kr.push(value.solution.m_dot_kr);
+            m_dot_rl.push(value.solution.m_dot_rl);
+            m_dot_le.push(value.solution.m_dot_le);
+            Q_dot_k.push(value.solution.Q_dot_k);
+            Q_dot_r.push(value.solution.Q_dot_r);
+            Q_dot_l.push(value.solution.Q_dot_l);
         }
 
         Self {
@@ -324,7 +321,6 @@ impl From<Vec<state_equations::Values>> for Values {
             Q_dot_k,
             Q_dot_r,
             Q_dot_l,
-            dP_dt,
         }
     }
 }
