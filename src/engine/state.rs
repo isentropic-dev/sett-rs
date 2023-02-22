@@ -133,7 +133,7 @@ impl Pressure {
 
     /// Calculate `Pressure` from `Values`
     pub fn from_values(values: &Values) -> Self {
-        let t_final = values.time.last().expect("values cannot be empty");
+        let t_final = values.final_time();
         let avg = integrate(&values.time, &values.P) / t_final;
         let t_zero = values.P[0];
         let max = *values
@@ -188,38 +188,11 @@ impl MassFlows {
     }
 
     /// Calculate `MassFlows` from `Values`
-    #[allow(clippy::similar_names)]
     pub fn from_values(values: &Values) -> Self {
-        let t_final = values.time.last().expect("values cannot be empty");
-
-        // Average time-discretized mass flow rate in cold heat exchanger
-        let m_dot_chx: Vec<_> = values
-            .m_dot_ck
-            .iter()
-            .zip(values.m_dot_kr.iter())
-            .map(|(ck, kr)| 0.5 * (ck + kr).abs()) // flow in different directions cancel each other before taking abs
-            .collect();
-
-        // Average time-discretized mass flow rate in regenerator
-        let m_dot_regen: Vec<_> = values
-            .m_dot_kr
-            .iter()
-            .zip(values.m_dot_rl.iter())
-            .map(|(kr, rl)| 0.5 * (kr + rl).abs())
-            .collect();
-
-        // Average time-discretized mass flow rate in hot heat exchanger
-        let m_dot_hhx: Vec<_> = values
-            .m_dot_rl
-            .iter()
-            .zip(values.m_dot_le.iter())
-            .map(|(rl, le)| 0.5 * (rl + le).abs())
-            .collect();
-
         Self {
-            chx: integrate(&values.time, &m_dot_chx) / t_final,
-            regen: integrate(&values.time, &m_dot_regen) / t_final,
-            hhx: integrate(&values.time, &m_dot_hhx) / t_final,
+            chx: values.m_dot_chx(),
+            regen: values.m_dot_regen(),
+            hhx: values.m_dot_hhx(),
         }
     }
 }
@@ -248,15 +221,19 @@ impl HeatFlows {
         temp_hhx: f64,
         thermal_res: ThermalResistance,
     ) -> Self {
-        let t_final = values.time.last().expect("values cannot be empty");
+        let t_final = values.final_time();
 
         // Cold heat exchanger
-        let Q_dot_c: Vec<_> = values
-            .T_c
-            .iter()
-            .map(|T_c| (T_c - temp_chx) / thermal_res.comp) // heat flow from fluid in compression space to chx
-            .collect();
-        let Q_dot_c = integrate(&values.time, &Q_dot_c) / t_final;
+        let Q_dot_c = if thermal_res.comp.is_infinite() {
+            0. // no heat flow if compression space is adiabatic
+        } else {
+            let Q_dot_c: Vec<_> = values
+                .T_c
+                .iter()
+                .map(|T_c| (T_c - temp_chx) / thermal_res.comp) // heat flow from fluid in compression space to chx
+                .collect();
+            integrate(&values.time, &Q_dot_c) / t_final
+        };
         let Q_dot_k = integrate(&values.time, &values.Q_dot_k) / t_final;
         let chx = Q_dot_c + Q_dot_k;
 
@@ -264,16 +241,58 @@ impl HeatFlows {
         let regen = integrate(&values.time, &values.Q_dot_r) / t_final;
 
         // Hot heat exchanger
-        let Q_dot_e: Vec<_> = values
-            .T_e
-            .iter()
-            .map(|T_e| (temp_hhx - T_e) / thermal_res.exp) // heat flow from hhx to fluid in expansion space
-            .collect();
-        let Q_dot_e = integrate(&values.time, &Q_dot_e) / t_final;
+        let Q_dot_e = if thermal_res.exp.is_infinite() {
+            0. // no heat flow if expansion space is adiabatic
+        } else {
+            let Q_dot_e: Vec<_> = values
+                .T_e
+                .iter()
+                .map(|T_e| (temp_hhx - T_e) / thermal_res.exp) // heat flow from hhx to fluid in expansion space
+                .collect();
+            integrate(&values.time, &Q_dot_e) / t_final
+        };
         let Q_dot_l = integrate(&values.time, &values.Q_dot_l) / t_final;
         let hhx = Q_dot_e + Q_dot_l;
 
         Self { chx, regen, hhx }
+    }
+}
+
+impl Values {
+    /// Return the last `self.time` value
+    fn final_time(&self) -> f64 {
+        *self.time.last().expect("values cannot be empty")
+    }
+
+    /// Calculate the average mass flow rate through the cold heat exchanger
+    fn m_dot_chx(&self) -> f64 {
+        self.m_dot_avg(self.m_dot_ck.iter(), self.m_dot_kr.iter())
+    }
+
+    /// Calculate the average mass flow rate through the regenerator
+    fn m_dot_regen(&self) -> f64 {
+        self.m_dot_avg(self.m_dot_kr.iter(), self.m_dot_rl.iter())
+    }
+
+    /// Calculate the average mass flow rate through the hot heat exchanger
+    fn m_dot_hhx(&self) -> f64 {
+        self.m_dot_avg(self.m_dot_rl.iter(), self.m_dot_le.iter())
+    }
+
+    /// Calculate the average mass flow rate through a control volume
+    ///
+    /// The control volume is defined by the two iterators that provide time-
+    /// discretized mass flow rates across the `left` and `right` sides of it.
+    fn m_dot_avg<'a>(
+        &self,
+        left: impl Iterator<Item = &'a f64>,
+        right: impl Iterator<Item = &'a f64>,
+    ) -> f64 {
+        let m_dot: Vec<_> = left
+            .zip(right)
+            .map(|(l, r)| 0.5 * (l + r).abs()) // flow in different directions cancel each other before taking abs
+            .collect();
+        integrate(&self.time, &m_dot) / self.final_time()
     }
 }
 
