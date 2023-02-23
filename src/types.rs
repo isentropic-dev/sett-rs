@@ -1,4 +1,11 @@
-/// Settings used to run an engine
+/// Inputs to an engine run
+pub struct RunInputs {
+    pub pres_zero: f64,
+    pub temp_sink: f64,
+    pub temp_source: f64,
+}
+
+/// Settings for an engine run
 pub struct RunSettings {
     pub resolution: u32,
     pub loop_tol: LoopTolerance,
@@ -10,6 +17,20 @@ pub struct RunSettings {
 pub struct LoopTolerance {
     pub inner: ConvergenceTolerance,
     pub outer: ConvergenceTolerance,
+}
+
+/// Tolerances used by the ODE integrator
+#[derive(Debug, Clone, Copy)]
+pub struct OdeTolerance {
+    pub abs: f64,
+    pub rel: f64,
+}
+
+/// Tolerances related to convergence between subsequent values
+#[derive(Debug, Clone, Copy)]
+pub struct ConvergenceTolerance {
+    pub abs: f64,
+    pub rel: f64,
 }
 
 /// Number of iterations to try before failing
@@ -37,20 +58,6 @@ pub struct HeatExchanger {
     pub cp: f64,
     pub m_dot: f64,
     pub Q_dot: f64,
-}
-
-/// Tolerances used by the ODE integrator
-#[derive(Debug, Clone, Copy)]
-pub struct OdeTolerance {
-    pub abs: f64,
-    pub rel: f64,
-}
-
-/// Tolerances related to convergence between subsequent values
-#[derive(Debug, Clone, Copy)]
-pub struct ConvergenceTolerance {
-    pub abs: f64,
-    pub rel: f64,
 }
 
 impl OdeTolerance {
