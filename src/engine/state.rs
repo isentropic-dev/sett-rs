@@ -4,7 +4,7 @@ use crate::{
     chx,
     fluid::Fluid,
     hhx, regen, state_equations,
-    types::{ConvergenceTolerance, HeatExchanger},
+    types::{ConvergenceTolerance, HeatExchanger, RunInputs},
     ws,
 };
 
@@ -32,13 +32,19 @@ pub struct Pressure {
 /// Constant engine temperatures in K
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Temperatures {
-    pub sink: f64,       // T_cold
-    pub chx: f64,        // T_k
-    pub regen_cold: f64, // T_r_cold
-    pub regen_avg: f64,  // T_r
-    pub regen_hot: f64,  // T_r_hot
-    pub hhx: f64,        // T_l
-    pub source: f64,     // T_hot
+    pub sink: f64,
+    pub chx: f64,
+    pub regen: RegenTemp,
+    pub hhx: f64,
+    pub source: f64,
+}
+
+/// Temperatures associated with the regenerator
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RegenTemp {
+    pub cold: f64, // T_r_cold
+    pub avg: f64,  // T_r
+    pub hot: f64,  // T_r_hot
 }
 
 /// Average mass flow rates through the heat exchangers in kg/s
@@ -70,11 +76,11 @@ pub struct HeatFlows {
 /// If a `RegenImbalance` is positive, the cold and hot sides are calculated according to:
 ///
 ///   `T_r_cold = T_k + approach`
-///   `T_r_hot = T_l - approach - imbalance`
+///   `T_r_hot = T_l - (approach + imbalance)`
 ///
 /// If a `RegenImbalance` is negative, the cold and hot sides are calculated according to:
 ///
-///    `T_r_cold = T_k + approach - imbalance`
+///    `T_r_cold = T_k + (approach - imbalance)`
 ///    `T_r_hot = T_l - approach`
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -142,10 +148,10 @@ impl<T: Fluid> State<T> {
     pub(super) fn regen(&self) -> regen::State {
         regen::State {
             hxr: HeatExchanger {
-                temp: self.temp.regen_avg,
+                temp: self.temp.regen.avg,
                 pres: self.pres.avg,
-                dens: self.fluid.dens(self.temp.regen_avg, self.pres.avg),
-                cp: self.fluid.cp(self.temp.regen_avg, self.pres.avg),
+                dens: self.fluid.dens(self.temp.regen.avg, self.pres.avg),
+                cp: self.fluid.cp(self.temp.regen.avg, self.pres.avg),
                 m_dot: self.mass_flow.regen,
                 Q_dot: self.heat_flow.regen,
             },
@@ -165,6 +171,43 @@ impl<T: Fluid> State<T> {
             },
             source_temp: self.temp.source,
         }
+    }
+
+    /// Create an initial `State` hint
+    #[allow(clippy::similar_names)]
+    pub(super) fn new_hint(components: &Components, fluid: T, inputs: RunInputs) -> Self {
+        let RunInputs {
+            pres_zero,
+            temp_sink,
+            temp_source,
+        } = inputs;
+
+        // Make some initial state in order to get approach temperatures from components
+        let regen_imbalance = RegenImbalance::default();
+        let mut state = Self {
+            fluid,
+            pres: Pressure::constant(pres_zero),
+            temp: Temperatures::from_env(temp_sink, temp_source),
+            mass_flow: MassFlows::constant(0.),
+            heat_flow: HeatFlows::constant(0.),
+            regen_imbalance,
+        };
+
+        // Request approach temperatures
+        let chx_approach = components.chx.approach(&state.chx());
+        let regen_approach = components.regen.approach(&state.regen());
+        let hhx_approach = components.hhx.approach(&state.hhx());
+
+        // Use approaches to update temperatures in the initial state
+        let temp_chx = temp_sink + chx_approach;
+        let temp_hhx = temp_source - hhx_approach;
+        let temp_regen = regen_imbalance.regen_temp(temp_chx, temp_hhx, regen_approach);
+
+        state.temp.chx = temp_chx;
+        state.temp.regen = temp_regen;
+        state.temp.hhx = temp_hhx;
+
+        state
     }
 }
 
@@ -211,14 +254,15 @@ impl Temperatures {
         let chx = sink;
         let hhx = source;
         let regen_avg = (sink + source) * 0.5;
-        let regen_cold = (chx + regen_avg) * 0.5;
-        let regen_hot = (hhx + regen_avg) * 0.5;
+        let regen = RegenTemp {
+            cold: (chx + regen_avg) * 0.5,
+            avg: regen_avg,
+            hot: (hhx + regen_avg) * 0.5,
+        };
         Self {
             sink,
             chx,
-            regen_cold,
-            regen_avg,
-            regen_hot,
+            regen,
             hhx,
             source,
         }
@@ -389,6 +433,30 @@ impl From<Vec<state_equations::Values>> for Values {
             Q_dot_r,
             Q_dot_l,
         }
+    }
+}
+
+impl RegenImbalance {
+    /// Calculate a `RegenTemperature`
+    #[allow(clippy::similar_names)]
+    pub fn regen_temp(self, temp_chx: f64, temp_hhx: f64, approach: f64) -> RegenTemp {
+        let cold_approach = if self.0 >= 0. {
+            approach
+        } else {
+            approach - self.0
+        };
+        let hot_approach = if self.0 >= 0. {
+            approach + self.0
+        } else {
+            approach
+        };
+
+        let cold = temp_chx + cold_approach;
+        let hot = temp_hhx - hot_approach;
+        let avg = (temp_hhx - 0.5 * hot_approach - temp_chx - 0.5 * cold_approach)
+            / ((temp_hhx - 0.5 * hot_approach) / (temp_chx + 0.5 * cold_approach)).ln();
+
+        RegenTemp { cold, avg, hot }
     }
 }
 

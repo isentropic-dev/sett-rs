@@ -92,15 +92,15 @@ impl<'a, T: Fluid, U: MatrixDecomposition> Run<'a, T, U> {
     }
 
     fn regen_inputs(&self, pres: f64) -> RegeneratorInputs {
-        let temp = self.temp.regen_avg;
+        let temp = self.temp.regen.avg;
         RegeneratorInputs {
             vol: self.vol_regen,
             dens: self.fluid.dens(temp, pres),
             inte: self.fluid.inte(temp, pres),
             dd_dP_T: self.fluid.dd_dP_T(temp, pres),
             du_dP_T: self.fluid.du_dP_T(temp, pres),
-            enth_cold: self.fluid.enth(self.temp.regen_cold, pres),
-            enth_hot: self.fluid.enth(self.temp.regen_hot, pres),
+            enth_cold: self.fluid.enth(self.temp.regen.cold, pres),
+            enth_hot: self.fluid.enth(self.temp.regen.hot, pres),
         }
     }
 

@@ -7,8 +7,8 @@ use crate::{
     chx,
     fluid::Fluid,
     hhx, regen,
-    state_equations::{Cycle, MatrixDecomposition},
-    types::RunSettings,
+    state_equations::{Cycle, MatrixDecomposition, SteadyStateInputs},
+    types::{RunInputs, RunSettings},
     ws,
 };
 
@@ -33,20 +33,22 @@ pub struct Components {
 impl<T: Fluid> Engine<T> {
     pub fn run<U: MatrixDecomposition>(
         components: Components,
-        state_hint: state::State<T>,
-        settings: &RunSettings,
+        fluid: T,
+        inputs: RunInputs,
+        settings: RunSettings,
     ) -> Result<Self> {
-        let mut state = state_hint;
+        let mut state = state::State::new_hint(&components, fluid, inputs);
         for _ in 0..settings.max_iters.outer {
             let run: run::Run<T, U> = run::Run::new(&components, &state);
-            let values = run.find_steady_state(
-                state.pres.t_zero,
-                (state.temp.chx, state.temp.hhx),
-                settings.resolution,
-                settings.ode_tol,
-                settings.loop_tol.inner,
-                settings.max_iters.inner,
-            )?;
+            let values = run.find_steady_state(SteadyStateInputs {
+                pres_zero: state.pres.t_zero,
+                temp_comp_hint: state.temp.chx,
+                temp_exp_hint: state.temp.hhx,
+                num_points: settings.resolution,
+                ode_tol: settings.ode_tol,
+                conv_tol: settings.loop_tol.inner,
+                max_iters: settings.max_iters.inner,
+            })?;
             let values = values.into(); // convert state equation values to engine values
             match state.update(&components, &values, settings.loop_tol.outer) {
                 Ok(new_state) => {
@@ -75,10 +77,7 @@ mod tests {
         ws::{sinusoidal_drive::Geometry, Parasitics, ThermalResistance},
     };
 
-    use super::{
-        state::{HeatFlows, MassFlows, RegenImbalance, Temperatures},
-        *,
-    };
+    use super::*;
 
     fn chx_fixed_approach() -> Box<chx::FixedApproach> {
         Box::<chx::FixedApproach>::default()
@@ -117,24 +116,22 @@ mod tests {
             regen: regen_fixed_approach(),
             hhx: hhx_fixed_approach(),
         };
-        let state_hint = state::State {
-            fluid: IdealGas::hydrogen(),
-            pres: Pressure::constant(10e6),
-            temp: Temperatures::from_env(300., 800.),
-            mass_flow: MassFlows::constant(1.),
-            heat_flow: HeatFlows::constant(1.),
-            regen_imbalance: RegenImbalance::default(),
+        let fluid = IdealGas::hydrogen();
+        let inputs = RunInputs {
+            pres_zero: 10e6,
+            temp_sink: 300.,
+            temp_source: 900.,
         };
         let settings = RunSettings {
-            resolution: 21,
+            resolution: 30,
             loop_tol: LoopTolerance {
                 inner: ConvergenceTolerance {
                     abs: 1e-3,
-                    rel: 1e-5,
+                    rel: 1e-6,
                 },
                 outer: ConvergenceTolerance {
                     abs: 1e-3,
-                    rel: 1e-5,
+                    rel: 1e-6,
                 },
             },
             ode_tol: OdeTolerance {
@@ -146,8 +143,7 @@ mod tests {
                 outer: 20,
             },
         };
-        let engine = Engine::run::<LuSolver>(components, state_hint, &settings)
+        let _engine = Engine::run::<LuSolver>(components, fluid, inputs, settings)
             .expect("engine should converge");
-        println!("{:#?}", engine.values);
     }
 }
