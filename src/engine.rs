@@ -29,8 +29,14 @@ pub struct Components {
     pub hhx: Box<dyn hhx::HotHeatExchanger>,
 }
 
-/// Attempt to create a running `Engine`
 impl<T: Fluid> Engine<T> {
+    /// Attempt to create a running `Engine`
+    ///
+    /// TODO: <https://github.com/isentropic-dev/sett-rs/issues/9>
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if a converged engine cannot be created.
     pub fn run<U: MatrixDecomposition>(
         components: Components,
         fluid: T,
