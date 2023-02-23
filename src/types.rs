@@ -66,17 +66,20 @@ pub struct HeatExchanger {
 }
 
 impl OdeTolerance {
+    #[must_use]
     pub fn new(abs: f64, rel: f64) -> Self {
         Self { abs, rel }
     }
 }
 
 impl ConvergenceTolerance {
+    #[must_use]
     pub fn new(abs: f64, rel: f64) -> Self {
         Self { abs, rel }
     }
 
     /// Return `true` if the change from `old` to `new` is sufficiently small
+    #[must_use]
     pub fn is_converged(&self, old: f64, new: f64) -> bool {
         let abs_change = new - old;
         let rel_change = abs_change / old;

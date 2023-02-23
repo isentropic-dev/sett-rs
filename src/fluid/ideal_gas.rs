@@ -17,17 +17,19 @@ pub enum Name {
 
 impl IdealGas {
     /// Return an ideal gas model for helium
+    #[must_use]
     pub fn helium() -> Self {
         Self::new(Name::Helium)
     }
 
     /// Return an ideal gas model for hydrogen
+    #[must_use]
     pub fn hydrogen() -> Self {
         Self::new(Name::Hydrogen)
     }
 
     /// Return an ideal gas model for `name`
-    pub fn new(name: Name) -> Self {
+    fn new(name: Name) -> Self {
         let IdealGasParameters {
             gas_constant,
             ref_temp,
@@ -72,6 +74,7 @@ impl IdealGas {
     }
 
     /// Return the `Name` of the fluid
+    #[must_use]
     pub fn name(&self) -> Name {
         self.name
     }
