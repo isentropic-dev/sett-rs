@@ -1,4 +1,5 @@
 /// Inputs to an engine run
+#[derive(Debug, Clone, Copy)]
 pub struct RunInputs {
     pub pres_zero: f64,
     pub temp_sink: f64,
@@ -6,6 +7,7 @@ pub struct RunInputs {
 }
 
 /// Settings for an engine run
+#[derive(Debug, Clone, Copy)]
 pub struct RunSettings {
     pub resolution: u32,
     pub loop_tol: LoopTolerance,
@@ -14,6 +16,7 @@ pub struct RunSettings {
 }
 
 /// Tolerances related to the two iteration loops
+#[derive(Debug, Clone, Copy)]
 pub struct LoopTolerance {
     pub inner: ConvergenceTolerance,
     pub outer: ConvergenceTolerance,
@@ -34,6 +37,7 @@ pub struct ConvergenceTolerance {
 }
 
 /// Number of iterations to try before failing
+#[derive(Debug, Clone, Copy)]
 pub struct MaxIters {
     pub inner: usize,
     pub outer: usize,
@@ -51,6 +55,7 @@ pub struct ParasiticPower {
 
 /// Average conditions in a heat exchanger
 #[allow(non_snake_case)]
+#[derive(Debug, Clone, Copy)]
 pub struct HeatExchanger {
     pub temp: f64,
     pub pres: f64,
