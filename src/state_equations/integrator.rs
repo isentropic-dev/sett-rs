@@ -34,8 +34,8 @@ impl<'a, T: Cycle> Integration<'a, T> {
         );
         let mut stepper = Dopri5::new(
             state,
-            0.0,               // t_initial
-            period + dx * 0.5, // just past t_final
+            0.0,
+            period + 1e-14, // TODO: https://github.com/isentropic-dev/sett-rs/issues/32
             dx,
             y0,
             tol.rel,
