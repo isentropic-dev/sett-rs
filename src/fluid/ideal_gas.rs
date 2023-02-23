@@ -9,6 +9,7 @@ pub struct IdealGas {
 }
 
 /// The available ideal gas fluids
+#[derive(Debug, Clone, Copy)]
 pub enum Name {
     Helium,
     Hydrogen,
@@ -68,6 +69,11 @@ impl IdealGas {
             cp_coefs,
             enth_coefs,
         }
+    }
+
+    /// Return the `Name` of the fluid
+    pub fn name(&self) -> Name {
+        self.name
     }
 }
 
