@@ -71,6 +71,7 @@ impl<'a, T: Cycle> Integration<'a, T> {
     }
 
     /// Return the final time of the integration
+    #[cfg(test)]
     pub fn final_time(&self) -> f64 {
         let last_point = self.points.last().unwrap(); // `self.points` is never empty
         last_point.time
