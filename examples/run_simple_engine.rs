@@ -13,7 +13,7 @@ fn main() {
 
         let components = Components {
             ws: Box::new(ws::SinusoidalDrive {
-                frequency: 4000. / 60., // 4,000 rpm
+                frequency: 70., // 4,200 rpm
                 phase_angle: 90.0,
                 comp_geometry: Geometry {
                     clearance_volume: 2e-5,
@@ -41,11 +41,11 @@ fn main() {
             loop_tol: LoopTolerance {
                 inner: ConvergenceTolerance {
                     abs: 1e-2,
-                    rel: 1e-5,
+                    rel: 1e-4,
                 },
                 outer: ConvergenceTolerance {
                     abs: 1e-2,
-                    rel: 1e-5,
+                    rel: 1e-4,
                 },
             },
             ode_tol: OdeTolerance {
