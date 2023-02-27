@@ -33,7 +33,7 @@ struct Tolerance {
 
 #[cfg(test)]
 mod test {
-    use super::Solver;
+    use super::{InnerLoop, OrdinaryDifferentialEquation, OuterLoop, Solver, Tolerance};
 
     #[track_caller]
     fn check_solver(toml_str: &str, expected_solver: Solver) {
@@ -50,11 +50,41 @@ mod test {
     #[test]
     fn deserializing_solver() {
         check_solver(
-            r#""#,
+            r#"
+            [inner_loop]
+            tolerance = { abs = 1e-6, rel = 1e-6 }
+            max_iterations = 10
+
+            [outer_loop]
+            tolerance = { abs = 1e-8, rel = 1e-8 }
+            max_iterations = 10
+
+            [ode]
+            tolerance = { abs = 1e-8, rel = 1e-8 }
+            num_timesteps = 20
+            "#,
             Solver {
-                inner_loop: todo!(),
-                outer_loop: todo!(),
-                ode: todo!(),
+                inner_loop: InnerLoop {
+                    tolerance: Tolerance {
+                        abs: 1e-6_f64,
+                        rel: 1e-6_f64,
+                    },
+                    max_iterations: 10,
+                },
+                outer_loop: OuterLoop {
+                    tolerance: Tolerance {
+                        abs: 1e-8_f64,
+                        rel: 1e-8_f64,
+                    },
+                    max_iterations: 10,
+                },
+                ode: OrdinaryDifferentialEquation {
+                    tolerance: Tolerance {
+                        abs: 1e-8_f64,
+                        rel: 1e-8_f64,
+                    },
+                    num_timesteps: 20,
+                },
             },
         )
     }
