@@ -6,8 +6,8 @@ struct Fluid {}
 struct Components {
     chx: ColdHeatExchanger,
     hhx: HotHeatExchanger,
-    regenerator: Regenerator,
-    working_spaces: WorkingSpaces,
+    regen: Regenerator,
+    ws: WorkingSpaces,
 }
 struct ColdHeatExchanger {}
 struct HotHeatExchanger {}
