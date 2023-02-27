@@ -1,22 +1,19 @@
+mod chx;
+mod fluid;
+mod hhx;
+mod regen;
+mod ws;
+
 use std::f64::INFINITY;
 
 use serde::Deserialize;
+
+use self::fluid::Fluid;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub(super) struct Engine {
     fluid: Fluid,
     components: Components,
-}
-
-#[derive(Debug, Deserialize, PartialEq)]
-#[serde(tag = "model", content = "params")]
-enum Fluid {
-    IdealGas { name: FluidName },
-}
-
-#[derive(Debug, Deserialize, PartialEq)]
-enum FluidName {
-    Hydrogen,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -150,10 +147,10 @@ impl Default for Sinusoidal {
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
     use super::{
-        ColdHeatExchanger, Components, Engine, Fluid, FluidName, HotHeatExchanger, Regenerator,
-        WorkingSpaces,
+        fluid::{Fluid, FluidName},
+        ColdHeatExchanger, Components, Engine, HotHeatExchanger, Regenerator, WorkingSpaces,
     };
 
     #[track_caller]
