@@ -19,7 +19,7 @@ mod test {
         conditions::Conditions,
         engine::{
             chx::ColdHeatExchanger,
-            fluid::{Fluid, FluidName},
+            fluid::{Fluid, HydrogenModel},
             hhx::HotHeatExchanger,
             regen::Regenerator,
             ws::WorkingSpaces,
@@ -45,10 +45,9 @@ mod test {
     fn deserialize_config() {
         check_config(
             r#"
-
             [engine.fluid]
-            model = "IdealGas"
-            params = { name = "Hydrogen"}
+            name = "hydrogen"
+            model = "ideal_gas"
 
             [engine.components.chx]
             type = "FixedApproach"
@@ -113,9 +112,7 @@ mod test {
             "#,
             Config {
                 engine: Engine {
-                    fluid: Fluid::IdealGas {
-                        name: FluidName::Hydrogen,
-                    },
+                    fluid: Fluid::Hydrogen(HydrogenModel::IdealGas),
                     components: Components {
                         chx: ColdHeatExchanger::FixedApproach(Default::default()),
                         hhx: HotHeatExchanger::FixedApproach(Default::default()),

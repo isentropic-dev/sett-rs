@@ -28,7 +28,7 @@ pub(super) struct Components {
 #[cfg(test)]
 mod test {
     use super::{
-        fluid::{Fluid, FluidName},
+        fluid::{Fluid, HydrogenModel},
         ColdHeatExchanger, Components, Engine, HotHeatExchanger, Regenerator, WorkingSpaces,
     };
 
@@ -49,8 +49,8 @@ mod test {
         check_engine(
             r#"
             [fluid]
-            model = "IdealGas"
-            params = { name = "Hydrogen"}
+            name = "hydrogen"
+            model = "ideal_gas"
 
             [components.chx]
             type = "FixedApproach"
@@ -97,9 +97,7 @@ mod test {
             Q_parasitic_e = 0
             "#,
             Engine {
-                fluid: Fluid::IdealGas {
-                    name: FluidName::Hydrogen,
-                },
+                fluid: Fluid::Hydrogen(HydrogenModel::IdealGas),
                 components: Components {
                     chx: ColdHeatExchanger::FixedApproach(Default::default()),
                     hhx: HotHeatExchanger::FixedApproach(Default::default()),

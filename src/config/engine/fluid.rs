@@ -1,19 +1,20 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq)]
-#[serde(tag = "model", content = "params")]
-pub enum Fluid {
-    IdealGas { name: FluidName },
+#[serde(rename_all = "snake_case", tag = "name", content = "model")]
+pub(crate) enum Fluid {
+    Hydrogen(HydrogenModel),
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub enum FluidName {
-    Hydrogen,
+#[serde(rename_all = "snake_case")]
+pub(crate) enum HydrogenModel {
+    IdealGas,
 }
 
 #[cfg(test)]
 mod test {
-    use super::{Fluid, FluidName};
+    use super::{Fluid, HydrogenModel};
 
     #[track_caller]
     fn check_fluid(toml_str: &str, expected_fluid: Fluid) {
@@ -28,12 +29,10 @@ mod test {
     fn deserializing_fluid() {
         check_fluid(
             r#"
-            model = "IdealGas"
-            params = { name = "Hydrogen"}
+            name = "hydrogen"
+            model = "ideal_gas"
             "#,
-            Fluid::IdealGas {
-                name: FluidName::Hydrogen,
-            },
+            Fluid::Hydrogen(HydrogenModel::IdealGas),
         )
     }
 }
