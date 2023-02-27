@@ -53,18 +53,14 @@ mod test {
             model = "ideal_gas"
 
             [components.chx]
-            type = "FixedApproach"
-
-            [components.chx.params]
+            type = "fixed_approach"
             vol = 4e-5
             DT = 40
             R_hyd = 0
             W_parasitic = 0
 
             [components.hhx]
-            type = "FixedApproach"
-
-            [components.hhx.params]
+            type = "fixed_approach"
             vol = 1e-4
             DT = 100
             R_hyd = 0
@@ -72,18 +68,14 @@ mod test {
             Q_parasitic = 0
 
             [components.regen]
-            type = "FixedApproach"
-
-            [components.regen.params]
+            type = "fixed_approach"
             vol = 1e-4
             DT = 10
             R_hyd = 0
             Q_parasitic = 0
 
             [components.ws]
-            type = "Sinusoidal"
-
-            [components.ws.params]
+            type = "sinusoidal"
             frequency = 66.6667
             phase_angle = 90
             V_swept_c = 1.128e-4

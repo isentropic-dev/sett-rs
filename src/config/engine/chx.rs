@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-#[serde(tag = "type", content = "params")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub(crate) enum ColdHeatExchanger {
     FixedApproach(CHXFixedApproach),
 }
@@ -47,9 +47,7 @@ mod test {
     fn deserializing_fixed_approach() {
         check_chx(
             r#"
-            type = "FixedApproach"
-
-            [params]
+            type = "fixed_approach"
             vol = 4e-5
             DT = 40
             R_hyd = 0

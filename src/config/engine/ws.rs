@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-#[serde(tag = "type", content = "params")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub(crate) enum WorkingSpaces {
     Sinusoidal(Sinusoidal),
 }
@@ -63,9 +63,7 @@ mod test {
     fn deserializing_sinusoidal() {
         check_ws(
             r#"
-            type = "Sinusoidal"
-
-            [params]
+            type = "sinusoidal"
             frequency = 66.6667
             phase_angle = 90
             V_swept_c = 1.128e-4

@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-#[serde(tag = "type", content = "params")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub(crate) enum Regenerator {
     FixedApproach(RegenFixedApproach),
 }
@@ -47,9 +47,7 @@ mod test {
     fn deserializing_fixed_approach() {
         check_regen(
             r#"
-            type = "FixedApproach"
-
-            [params]
+            type = "fixed_approach"
             vol = 1e-4
             DT = 10
             R_hyd = 0
