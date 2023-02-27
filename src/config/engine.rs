@@ -1,8 +1,8 @@
-mod chx;
-mod fluid;
-mod hhx;
-mod regen;
-mod ws;
+pub mod chx;
+pub mod fluid;
+pub mod hhx;
+pub mod regen;
+pub mod ws;
 
 use serde::Deserialize;
 
@@ -13,16 +13,16 @@ use self::{
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub(super) struct Engine {
-    fluid: Fluid,
-    components: Components,
+    pub(crate) fluid: Fluid,
+    pub(crate) components: Components,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct Components {
-    chx: ColdHeatExchanger,
-    hhx: HotHeatExchanger,
-    regen: Regenerator,
-    ws: WorkingSpaces,
+pub(super) struct Components {
+    pub(crate) chx: ColdHeatExchanger,
+    pub(crate) hhx: HotHeatExchanger,
+    pub(crate) regen: Regenerator,
+    pub(crate) ws: WorkingSpaces,
 }
 
 #[cfg(test)]

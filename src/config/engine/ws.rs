@@ -5,24 +5,24 @@ use serde::Deserialize;
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(tag = "type", content = "params")]
-pub(super) enum WorkingSpaces {
+pub(crate) enum WorkingSpaces {
     Sinusoidal(Sinusoidal),
 }
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub(super) struct Sinusoidal {
-    frequency: f64,
-    phase_angle: f64,
-    V_swept_c: f64,
-    V_clearance_c: f64,
-    R_c: f64,
-    W_parasitic_c: f64,
-    V_swept_e: f64,
-    V_clearance_e: f64,
-    R_e: f64,
-    W_parasitic_e: f64,
-    Q_parasitic_e: f64,
+pub(crate) struct Sinusoidal {
+    pub(crate) frequency: f64,
+    pub(crate) phase_angle: f64,
+    pub(crate) V_swept_c: f64,
+    pub(crate) V_clearance_c: f64,
+    pub(crate) R_c: f64,
+    pub(crate) W_parasitic_c: f64,
+    pub(crate) V_swept_e: f64,
+    pub(crate) V_clearance_e: f64,
+    pub(crate) R_e: f64,
+    pub(crate) W_parasitic_e: f64,
+    pub(crate) Q_parasitic_e: f64,
 }
 
 impl Default for Sinusoidal {

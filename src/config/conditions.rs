@@ -2,10 +2,10 @@ use serde::Deserialize;
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub(super) struct Conditions {
-    T_cold: f64,
-    T_hot: f64,
-    P_0: f64,
+pub(crate) struct Conditions {
+    pub(crate) T_cold: f64,
+    pub(crate) T_hot: f64,
+    pub(crate) P_0: f64,
 }
 
 #[cfg(test)]

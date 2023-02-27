@@ -3,18 +3,18 @@ use serde::Deserialize;
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(tag = "type", content = "params")]
-pub(super) enum HotHeatExchanger {
+pub(crate) enum HotHeatExchanger {
     FixedApproach(HHXFixedApproach),
 }
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub(super) struct HHXFixedApproach {
-    vol: f64,
-    DT: f64,
-    R_hyd: f64,
-    W_parasitic: f64,
-    Q_parasitic: f64,
+pub(crate) struct HHXFixedApproach {
+    pub(crate) vol: f64,
+    pub(crate) DT: f64,
+    pub(crate) R_hyd: f64,
+    pub(crate) W_parasitic: f64,
+    pub(crate) Q_parasitic: f64,
 }
 
 impl Default for HHXFixedApproach {

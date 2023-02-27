@@ -1,34 +1,34 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub(super) struct Solver {
-    inner_loop: InnerLoop,
-    outer_loop: OuterLoop,
-    ode: OrdinaryDifferentialEquation,
+pub(crate) struct Solver {
+    pub(crate) inner_loop: InnerLoop,
+    pub(crate) outer_loop: OuterLoop,
+    pub(crate) ode: OrdinaryDifferentialEquation,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct InnerLoop {
-    tolerance: Tolerance,
-    max_iterations: u32,
+pub(crate) struct InnerLoop {
+    pub(crate) tolerance: Tolerance,
+    pub(crate) max_iterations: u32,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct OuterLoop {
-    tolerance: Tolerance,
-    max_iterations: u32,
+pub(crate) struct OuterLoop {
+    pub(crate) tolerance: Tolerance,
+    pub(crate) max_iterations: u32,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct OrdinaryDifferentialEquation {
-    tolerance: Tolerance,
-    num_timesteps: u32,
+pub(crate) struct OrdinaryDifferentialEquation {
+    pub(crate) tolerance: Tolerance,
+    pub(crate) num_timesteps: u32,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct Tolerance {
-    abs: f64,
-    rel: f64,
+pub(crate) struct Tolerance {
+    pub(crate) abs: f64,
+    pub(crate) rel: f64,
 }
 
 #[cfg(test)]

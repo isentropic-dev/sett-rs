@@ -3,17 +3,17 @@ use serde::Deserialize;
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(tag = "type", content = "params")]
-pub(super) enum ColdHeatExchanger {
+pub(crate) enum ColdHeatExchanger {
     FixedApproach(CHXFixedApproach),
 }
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub(super) struct CHXFixedApproach {
-    vol: f64,
-    DT: f64,
-    R_hyd: f64,
-    W_parasitic: f64,
+pub(crate) struct CHXFixedApproach {
+    pub(crate) vol: f64,
+    pub(crate) DT: f64,
+    pub(crate) R_hyd: f64,
+    pub(crate) W_parasitic: f64,
 }
 
 impl Default for CHXFixedApproach {

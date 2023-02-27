@@ -2,12 +2,12 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(tag = "model", content = "params")]
-pub(super) enum Fluid {
+pub enum Fluid {
     IdealGas { name: FluidName },
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub(super) enum FluidName {
+pub enum FluidName {
     Hydrogen,
 }
 
