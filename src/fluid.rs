@@ -4,6 +4,7 @@ mod refprop;
 
 // Export all available fluid models
 pub use ideal_gas::IdealGas;
+use serde::Deserialize;
 
 pub trait Fluid {
     /// Return density in kg/m3
@@ -81,4 +82,36 @@ pub trait Fluid {
     ///
     #[allow(non_snake_case)]
     fn du_dT_P(&self, temp: f64, pres: f64) -> f64;
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case", tag = "name", content = "model")]
+pub enum FluidConfig {
+    Hydrogen(FluidModelConfig),
+    Helium(FluidModelConfig),
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum FluidModelConfig {
+    IdealGas,
+    RefProp,
+    FIT,
+}
+
+impl FluidConfig {
+    pub fn into(&self) -> impl Fluid {
+        match self {
+            FluidConfig::Hydrogen(model) => match model {
+                FluidModelConfig::IdealGas => IdealGas::hydrogen(),
+                FluidModelConfig::RefProp => todo!(),
+                FluidModelConfig::FIT => todo!(),
+            },
+            FluidConfig::Helium(model) => match model {
+                FluidModelConfig::IdealGas => IdealGas::helium(),
+                FluidModelConfig::RefProp => todo!(),
+                FluidModelConfig::FIT => todo!(),
+            },
+        }
+    }
 }

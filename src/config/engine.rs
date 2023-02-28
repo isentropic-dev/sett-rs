@@ -1,17 +1,13 @@
-pub mod fluid;
-
 use serde::Deserialize;
 
 use crate::{
-    chx::ColdHeatExchangerConfig, hhx::HotHeatExchangerConfig, regen::RegeneratorConfig,
-    ws::WorkingSpacesConfig,
+    chx::ColdHeatExchangerConfig, fluid::FluidConfig, hhx::HotHeatExchangerConfig,
+    regen::RegeneratorConfig, ws::WorkingSpacesConfig,
 };
-
-use self::fluid::Fluid;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub(super) struct Engine {
-    pub(crate) fluid: Fluid,
+    pub(crate) fluid: FluidConfig,
     pub(crate) components: Components,
 }
 
@@ -26,14 +22,14 @@ pub(super) struct Components {
 #[cfg(test)]
 mod test {
     use crate::{
-        chx::ColdHeatExchangerConfig, hhx::HotHeatExchangerConfig, regen::RegeneratorConfig,
+        chx::ColdHeatExchangerConfig,
+        fluid::{FluidConfig, FluidModelConfig},
+        hhx::HotHeatExchangerConfig,
+        regen::RegeneratorConfig,
         ws::WorkingSpacesConfig,
     };
 
-    use super::{
-        fluid::{Fluid, HydrogenModel},
-        Components, Engine,
-    };
+    use super::{Components, Engine};
 
     #[track_caller]
     fn check_engine(toml_str: &str, expected_engine: Engine) {
@@ -92,7 +88,7 @@ mod test {
             Q_parasitic_e = 0
             "#,
             Engine {
-                fluid: Fluid::Hydrogen(HydrogenModel::IdealGas),
+                fluid: FluidConfig::Hydrogen(FluidModelConfig::IdealGas),
                 components: Components {
                     chx: ColdHeatExchangerConfig::FixedApproach(Default::default()),
                     hhx: HotHeatExchangerConfig::FixedApproach(Default::default()),

@@ -80,6 +80,7 @@ impl IdealGas {
     }
 }
 
+#[allow(non_snake_case)]
 impl Fluid for IdealGas {
     fn dens(&self, temp: f64, pres: f64) -> f64 {
         pres / (self.gas_constant * temp)

@@ -16,16 +16,16 @@ struct Config {
 #[cfg(test)]
 mod test {
     use crate::{
-        chx::ColdHeatExchangerConfig, hhx::HotHeatExchangerConfig, regen::RegeneratorConfig,
+        chx::ColdHeatExchangerConfig,
+        fluid::{FluidConfig, FluidModelConfig},
+        hhx::HotHeatExchangerConfig,
+        regen::RegeneratorConfig,
         ws::WorkingSpacesConfig,
     };
 
     use super::{
         conditions::Conditions,
-        engine::{
-            fluid::{Fluid, HydrogenModel},
-            Components, Engine,
-        },
+        engine::{Components, Engine},
         solver::{InnerLoop, OrdinaryDifferentialEquation, OuterLoop, Solver, Tolerance},
         Config,
     };
@@ -105,7 +105,7 @@ mod test {
             "#,
             Config {
                 engine: Engine {
-                    fluid: Fluid::Hydrogen(HydrogenModel::IdealGas),
+                    fluid: FluidConfig::Hydrogen(FluidModelConfig::IdealGas),
                     components: Components {
                         chx: ColdHeatExchangerConfig::FixedApproach(Default::default()),
                         hhx: HotHeatExchangerConfig::FixedApproach(Default::default()),
