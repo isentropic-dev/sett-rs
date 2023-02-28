@@ -17,13 +17,13 @@ struct Config {
 mod test {
     use crate::{
         chx::ColdHeatExchangerConfig, hhx::HotHeatExchangerConfig, regen::RegeneratorConfig,
+        ws::WorkingSpacesConfig,
     };
 
     use super::{
         conditions::Conditions,
         engine::{
             fluid::{Fluid, HydrogenModel},
-            ws::WorkingSpaces,
             Components, Engine,
         },
         solver::{InnerLoop, OrdinaryDifferentialEquation, OuterLoop, Solver, Tolerance},
@@ -110,7 +110,7 @@ mod test {
                         chx: ColdHeatExchangerConfig::FixedApproach(Default::default()),
                         hhx: HotHeatExchangerConfig::FixedApproach(Default::default()),
                         regen: RegeneratorConfig::FixedApproach(Default::default()),
-                        ws: WorkingSpaces::Sinusoidal(Default::default()),
+                        ws: WorkingSpacesConfig::Sinusoidal(Default::default()),
                     },
                 },
                 solver: Solver {

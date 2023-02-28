@@ -1,6 +1,12 @@
+use serde::Deserialize;
+
 use super::{CompVolume, ExpVolume, Parasitics, State, ThermalResistance, WorkingSpaces};
 
 pub struct GPU3 {}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct GPU3Config {}
 
 impl WorkingSpaces for GPU3 {
     fn frequency(&self, _state: &State) -> f64 {
@@ -16,6 +22,12 @@ impl WorkingSpaces for GPU3 {
     }
 
     fn parasitics(&self, _state: &State) -> Parasitics {
+        todo!()
+    }
+}
+
+impl From<GPU3Config> for GPU3 {
+    fn from(_: GPU3Config) -> Self {
         todo!()
     }
 }

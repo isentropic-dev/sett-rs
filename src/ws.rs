@@ -7,9 +7,15 @@ pub mod sinusoidal_drive;
 pub use gpu3::GPU3;
 pub use mod2::Mod2;
 pub use rhombic_drive::RhombicDrive;
+use serde::Deserialize;
 pub use sinusoidal_drive::SinusoidalDrive;
 
 use crate::{engine::Pressure, types::ParasiticPower};
+
+use self::{
+    gpu3::GPU3Config, mod2::Mod2Config, rhombic_drive::RhombicDriveConfig,
+    sinusoidal_drive::SinusoidalDriveConfig,
+};
 
 pub trait WorkingSpaces {
     /// Returns the frequency (Hz) of the engine
@@ -69,4 +75,14 @@ pub struct Parasitics {
 /// Information available to a ws component for calculating its parameters
 pub struct State {
     pub pres: Pressure,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case", tag = "type")]
+pub enum WorkingSpacesConfig {
+    Sinusoidal(SinusoidalDriveConfig),
+    Rhombic(RhombicDriveConfig),
+    GPU3(GPU3Config),
+    Mod2(Mod2Config),
 }

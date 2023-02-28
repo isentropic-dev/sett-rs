@@ -1,6 +1,12 @@
+use serde::Deserialize;
+
 use super::{CompVolume, ExpVolume, Parasitics, State, ThermalResistance, WorkingSpaces};
 
 pub struct Mod2 {}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Mod2Config {}
 
 impl WorkingSpaces for Mod2 {
     fn frequency(&self, _state: &State) -> f64 {
@@ -16,6 +22,12 @@ impl WorkingSpaces for Mod2 {
     }
 
     fn parasitics(&self, _state: &State) -> Parasitics {
+        todo!()
+    }
+}
+
+impl From<Mod2Config> for Mod2 {
+    fn from(_: Mod2Config) -> Self {
         todo!()
     }
 }
