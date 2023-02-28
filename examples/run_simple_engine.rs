@@ -64,8 +64,8 @@ fn main() {
         println!("-----------------");
         println!("T_hot: {temp_source:?}");
         println!("time:  {:?}", engine.values.time);
-        println!("P:     {:?}", engine.values.time);
-        println!("T_c:   {:?}", engine.values.time);
-        println!("T_e:   {:?}", engine.values.time);
+        println!("P:     {:?}", engine.values.P);
+        println!("T_c:   {:?}", engine.values.T_c);
+        println!("T_e:   {:?}", engine.values.T_e);
     }
 }
