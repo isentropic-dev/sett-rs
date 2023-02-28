@@ -15,14 +15,14 @@ struct Config {
 
 #[cfg(test)]
 mod test {
-    use crate::chx::ColdHeatExchangerConfig;
+    use crate::{
+        chx::ColdHeatExchangerConfig, hhx::HotHeatExchangerConfig, regen::RegeneratorConfig,
+    };
 
     use super::{
         conditions::Conditions,
         engine::{
             fluid::{Fluid, HydrogenModel},
-            hhx::HotHeatExchanger,
-            regen::Regenerator,
             ws::WorkingSpaces,
             Components, Engine,
         },
@@ -108,8 +108,8 @@ mod test {
                     fluid: Fluid::Hydrogen(HydrogenModel::IdealGas),
                     components: Components {
                         chx: ColdHeatExchangerConfig::FixedApproach(Default::default()),
-                        hhx: HotHeatExchanger::FixedApproach(Default::default()),
-                        regen: Regenerator::FixedApproach(Default::default()),
+                        hhx: HotHeatExchangerConfig::FixedApproach(Default::default()),
+                        regen: RegeneratorConfig::FixedApproach(Default::default()),
                         ws: WorkingSpaces::Sinusoidal(Default::default()),
                     },
                 },

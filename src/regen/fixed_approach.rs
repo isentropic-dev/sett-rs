@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 use crate::types::ParasiticPower;
 
 use super::{Regenerator, State};
@@ -9,6 +11,15 @@ pub struct FixedApproach {
     volume: f64,
     approach: f64,
     parasitics: ParasiticPower,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct FixedApproachConfig {
+    pub(crate) vol: f64,
+    pub(crate) DT: f64,
+    pub(crate) R_hyd: f64,
+    pub(crate) Q_parasitic: f64,
 }
 
 #[allow(non_snake_case)]
@@ -58,6 +69,32 @@ impl Default for FixedApproach {
             volume: 1.0e-4_f64,
             approach: 10.,
             parasitics: ParasiticPower::default(),
+        }
+    }
+}
+
+impl Default for FixedApproachConfig {
+    fn default() -> Self {
+        Self {
+            vol: 1e-4_f64,
+            DT: 10.,
+            R_hyd: 0.,
+            Q_parasitic: 0.,
+        }
+    }
+}
+
+impl From<FixedApproachConfig> for FixedApproach {
+    fn from(config: FixedApproachConfig) -> Self {
+        let parasitics = ParasiticPower {
+            thermal: config.Q_parasitic,
+            ..ParasiticPower::default()
+        };
+        Self {
+            R_hyd: config.R_hyd,
+            volume: config.vol,
+            approach: config.DT,
+            parasitics,
         }
     }
 }

@@ -9,7 +9,11 @@ pub use fixed_conductance::FixedConductance;
 pub use gpu3::GPU3;
 pub use mod2::Mod2;
 
+use serde::Deserialize;
+
 use crate::types::{HeatExchanger, ParasiticPower};
+
+use self::fixed_approach::FixedApproachConfig;
 
 /// Allows a type to act as a regenerator
 pub trait Regenerator {
@@ -38,4 +42,11 @@ pub trait Regenerator {
 /// Information available to a regenerator component for calculating its parameters
 pub struct State {
     pub hxr: HeatExchanger,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case", tag = "type")]
+pub enum RegeneratorConfig {
+    FixedApproach(FixedApproachConfig),
 }
