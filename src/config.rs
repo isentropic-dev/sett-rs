@@ -1,14 +1,16 @@
 mod conditions;
-mod engine;
 mod solver;
 
 use serde::Deserialize;
 
-use crate::config::{conditions::Conditions, engine::Engine, solver::Solver};
+use crate::{
+    config::{conditions::Conditions, solver::Solver},
+    engine::EngineConfig,
+};
 
 #[derive(Debug, Deserialize, PartialEq)]
 struct Config {
-    engine: Engine,
+    engine: EngineConfig,
     solver: Solver,
     conditions: Conditions,
 }
@@ -17,6 +19,7 @@ struct Config {
 mod test {
     use crate::{
         chx::ColdHeatExchangerConfig,
+        engine::{ComponentsConfig, EngineConfig},
         fluid::{FluidConfig, FluidModelConfig},
         hhx::HotHeatExchangerConfig,
         regen::RegeneratorConfig,
@@ -25,7 +28,6 @@ mod test {
 
     use super::{
         conditions::Conditions,
-        engine::{Components, Engine},
         solver::{InnerLoop, OrdinaryDifferentialEquation, OuterLoop, Solver, Tolerance},
         Config,
     };
@@ -104,9 +106,9 @@ mod test {
             P_0 = 100
             "#,
             Config {
-                engine: Engine {
+                engine: EngineConfig {
                     fluid: FluidConfig::Hydrogen(FluidModelConfig::IdealGas),
-                    components: Components {
+                    components: ComponentsConfig {
                         chx: ColdHeatExchangerConfig::FixedApproach(Default::default()),
                         hhx: HotHeatExchangerConfig::FixedApproach(Default::default()),
                         regen: RegeneratorConfig::FixedApproach(Default::default()),

@@ -2,10 +2,11 @@ mod run;
 mod state;
 
 use anyhow::{bail, Result};
+use serde::Deserialize;
 
 use crate::{
     chx,
-    fluid::Fluid,
+    fluid::{self, Fluid},
     hhx, regen,
     state_equations::{Cycle, MatrixDecomposition, SteadyStateInputs},
     types::{RunInputs, RunSettings},
@@ -20,6 +21,14 @@ pub struct Engine<T: Fluid> {
     pub state: state::State<T>,
     pub values: state::Values,
 }
+
+// use crate::{
+//     chx::{self, ColdHeatExchangerConfig},
+//     fluid::{Fluid, FluidConfig},
+//     hhx::{self, HotHeatExchangerConfig},
+//     regen::{self, RegeneratorConfig},
+//     ws::{self, WorkingSpacesConfig},
+// };
 
 /// The components of a Stirling engine
 pub struct Components {
@@ -71,6 +80,73 @@ impl<T: Fluid> Engine<T> {
         }
 
         bail!("not converged")
+    }
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct EngineConfig {
+    pub fluid: fluid::FluidConfig,
+    pub components: ComponentsConfig,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ComponentsConfig {
+    pub chx: chx::ColdHeatExchangerConfig,
+    pub hhx: hhx::HotHeatExchangerConfig,
+    pub regen: regen::RegeneratorConfig,
+    pub ws: ws::WorkingSpacesConfig,
+}
+
+impl From<ComponentsConfig> for Components {
+    fn from(config: ComponentsConfig) -> Self {
+        Self {
+            ws: match config.ws {
+                ws::WorkingSpacesConfig::Sinusoidal(config) => {
+                    Box::<ws::SinusoidalDrive>::new(config.into())
+                }
+                ws::WorkingSpacesConfig::Rhombic(config) => {
+                    Box::<ws::RhombicDrive>::new(config.into())
+                }
+                ws::WorkingSpacesConfig::GPU3(config) => Box::<ws::GPU3>::new(config.into()),
+                ws::WorkingSpacesConfig::Mod2(config) => Box::<ws::Mod2>::new(config.into()),
+            },
+            chx: match config.chx {
+                chx::ColdHeatExchangerConfig::FixedApproach(config) => {
+                    Box::<chx::FixedApproach>::new(config.into())
+                }
+                chx::ColdHeatExchangerConfig::FixedConductance(config) => {
+                    Box::<chx::FixedConductance>::new(config.into())
+                }
+                chx::ColdHeatExchangerConfig::GPU3(config) => Box::<chx::GPU3>::new(config.into()),
+                chx::ColdHeatExchangerConfig::Mod2(config) => Box::<chx::Mod2>::new(config.into()),
+            },
+            regen: match config.regen {
+                regen::RegeneratorConfig::FixedApproach(config) => {
+                    Box::<regen::FixedApproach>::new(config.into())
+                }
+                regen::RegeneratorConfig::FixedConductance(config) => {
+                    Box::<regen::FixedConductance>::new(config.into())
+                }
+                regen::RegeneratorConfig::GPU3(config) => Box::<regen::GPU3>::new(config.into()),
+                regen::RegeneratorConfig::Mod2(config) => Box::<regen::Mod2>::new(config.into()),
+            },
+            hhx: match config.hhx {
+                hhx::HotHeatExchangerConfig::FixedApproach(config) => {
+                    Box::<hhx::FixedApproach>::new(config.into())
+                }
+                hhx::HotHeatExchangerConfig::FixedConductance(config) => {
+                    Box::<hhx::FixedConductance>::new(config.into())
+                }
+                hhx::HotHeatExchangerConfig::GPU3(config) => Box::<hhx::GPU3>::new(config.into()),
+                hhx::HotHeatExchangerConfig::Mod2(config) => Box::<hhx::Mod2>::new(config.into()),
+                hhx::HotHeatExchangerConfig::GPU3NI(config) => {
+                    Box::<hhx::NuclearIsomerGPU3>::new(config.into())
+                }
+                hhx::HotHeatExchangerConfig::Mod2NI(config) => {
+                    Box::<hhx::NuclearIsomerMod2>::new(config.into())
+                }
+            },
+        }
     }
 }
 

@@ -47,7 +47,7 @@ pub struct State {
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case", tag = "type")]
-pub(crate) enum ColdHeatExchangerConfig {
+pub enum ColdHeatExchangerConfig {
     FixedApproach(FixedApproachConfig),
     FixedConductance(FixedConductanceConfig),
     GPU3(GPU3Config),
