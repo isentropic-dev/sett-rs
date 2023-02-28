@@ -13,7 +13,10 @@ use serde::Deserialize;
 
 use crate::types::{HeatExchanger, ParasiticPower};
 
-use self::fixed_approach::FixedApproachConfig;
+use self::{
+    fixed_approach::FixedApproachConfig, fixed_conductance::FixedConductanceConfig,
+    gpu3::GPU3Config, mod2::Mod2Config,
+};
 
 /// Allows a type to act as a regenerator
 pub trait Regenerator {
@@ -49,4 +52,7 @@ pub struct State {
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum RegeneratorConfig {
     FixedApproach(FixedApproachConfig),
+    FixedConductance(FixedConductanceConfig),
+    GPU3(GPU3Config),
+    Mod2(Mod2Config),
 }

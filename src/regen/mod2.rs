@@ -1,8 +1,14 @@
+use serde::Deserialize;
+
 use crate::types::ParasiticPower;
 
 use super::State;
 
 pub struct Mod2 {}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Mod2Config {}
 
 impl super::Regenerator for Mod2 {
     fn volume(&self) -> f64 {
@@ -18,6 +24,12 @@ impl super::Regenerator for Mod2 {
     }
 
     fn parasitics(&self, _state: &State) -> ParasiticPower {
+        todo!()
+    }
+}
+
+impl From<Mod2Config> for Mod2 {
+    fn from(_: Mod2Config) -> Self {
         todo!()
     }
 }
