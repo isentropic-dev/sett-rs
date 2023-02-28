@@ -1,4 +1,3 @@
-pub mod chx;
 pub mod fluid;
 pub mod hhx;
 pub mod regen;
@@ -6,10 +5,9 @@ pub mod ws;
 
 use serde::Deserialize;
 
-use self::{
-    chx::ColdHeatExchanger, fluid::Fluid, hhx::HotHeatExchanger, regen::Regenerator,
-    ws::WorkingSpaces,
-};
+use crate::chx::ColdHeatExchangerConfig;
+
+use self::{fluid::Fluid, hhx::HotHeatExchanger, regen::Regenerator, ws::WorkingSpaces};
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub(super) struct Engine {
@@ -19,7 +17,7 @@ pub(super) struct Engine {
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub(super) struct Components {
-    pub(crate) chx: ColdHeatExchanger,
+    pub(crate) chx: ColdHeatExchangerConfig,
     pub(crate) hhx: HotHeatExchanger,
     pub(crate) regen: Regenerator,
     pub(crate) ws: WorkingSpaces,
@@ -27,9 +25,11 @@ pub(super) struct Components {
 
 #[cfg(test)]
 mod test {
+    use crate::chx::ColdHeatExchangerConfig;
+
     use super::{
         fluid::{Fluid, HydrogenModel},
-        ColdHeatExchanger, Components, Engine, HotHeatExchanger, Regenerator, WorkingSpaces,
+        Components, Engine, HotHeatExchanger, Regenerator, WorkingSpaces,
     };
 
     #[track_caller]
@@ -91,7 +91,7 @@ mod test {
             Engine {
                 fluid: Fluid::Hydrogen(HydrogenModel::IdealGas),
                 components: Components {
-                    chx: ColdHeatExchanger::FixedApproach(Default::default()),
+                    chx: ColdHeatExchangerConfig::FixedApproach(Default::default()),
                     hhx: HotHeatExchanger::FixedApproach(Default::default()),
                     regen: Regenerator::FixedApproach(Default::default()),
                     ws: WorkingSpaces::Sinusoidal(Default::default()),
