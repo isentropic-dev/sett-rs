@@ -13,6 +13,9 @@ pub use crate::config::Config;
 pub use engine::{Components, Engine};
 pub use state_equations::{LuSolver, QrSolver, SvdDefaultSolver};
 
+/// # Panics
+///
+/// If an unsupported fluid model is provided.
 pub fn run_from_config(config: Config) {
     let fluid = match config.engine.fluid {
         fluid::Config::Hydrogen(model) => match model {
