@@ -22,14 +22,6 @@ pub struct Engine<T: Fluid> {
     pub values: state::Values,
 }
 
-// use crate::{
-//     chx::{self, ColdHeatExchangerConfig},
-//     fluid::{Fluid, FluidConfig},
-//     hhx::{self, HotHeatExchangerConfig},
-//     regen::{self, RegeneratorConfig},
-//     ws::{self, WorkingSpacesConfig},
-// };
-
 /// The components of a Stirling engine
 pub struct Components {
     pub ws: Box<dyn ws::WorkingSpaces>,

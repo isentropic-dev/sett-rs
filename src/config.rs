@@ -1,18 +1,20 @@
-mod conditions;
-mod solver;
-
 use serde::Deserialize;
 
-use crate::{
-    config::{conditions::Conditions, solver::Solver},
-    engine::EngineConfig,
-};
+use crate::{engine::EngineConfig, types::SolverConfig};
 
 #[derive(Debug, Deserialize, PartialEq)]
 struct Config {
     engine: EngineConfig,
-    solver: Solver,
+    solver: SolverConfig,
     conditions: Conditions,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Conditions {
+    pub(crate) T_cold: f64,
+    pub(crate) T_hot: f64,
+    pub(crate) P_0: f64,
 }
 
 #[cfg(test)]
@@ -23,14 +25,11 @@ mod test {
         fluid::{FluidConfig, FluidModelConfig},
         hhx::HotHeatExchangerConfig,
         regen::RegeneratorConfig,
+        types::{InnerLoopConfig, ODEConfig, OuterLoopConfig, SolverConfig, ToleranceConfig},
         ws::WorkingSpacesConfig,
     };
 
-    use super::{
-        conditions::Conditions,
-        solver::{InnerLoop, OrdinaryDifferentialEquation, OuterLoop, Solver, Tolerance},
-        Config,
-    };
+    use super::{Conditions, Config};
 
     #[track_caller]
     fn check_config(toml_str: &str, expected_config: Config) {
@@ -115,23 +114,23 @@ mod test {
                         ws: WorkingSpacesConfig::Sinusoidal(Default::default()),
                     },
                 },
-                solver: Solver {
-                    inner_loop: InnerLoop {
-                        tolerance: Tolerance {
+                solver: SolverConfig {
+                    inner_loop: InnerLoopConfig {
+                        tolerance: ToleranceConfig {
                             abs: 1e-6_f64,
                             rel: 1e-6_f64,
                         },
                         max_iterations: 10,
                     },
-                    outer_loop: OuterLoop {
-                        tolerance: Tolerance {
+                    outer_loop: OuterLoopConfig {
+                        tolerance: ToleranceConfig {
                             abs: 1e-8_f64,
                             rel: 1e-8_f64,
                         },
                         max_iterations: 10,
                     },
-                    ode: OrdinaryDifferentialEquation {
-                        tolerance: Tolerance {
+                    ode: ODEConfig {
+                        tolerance: ToleranceConfig {
                             abs: 1e-8_f64,
                             rel: 1e-8_f64,
                         },
