@@ -1,17 +1,17 @@
 use serde::Deserialize;
 
-use crate::{engine::EngineConfig, types::SolverConfig};
+use crate::{engine, types::SolverConfig};
 
 #[derive(Debug, Deserialize, PartialEq)]
 struct Config {
-    engine: EngineConfig,
+    engine: engine::Config,
     solver: SolverConfig,
-    conditions: ConditionsConfig,
+    conditions: Conditions,
 }
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct ConditionsConfig {
+pub struct Conditions {
     pub T_cold: f64,
     pub T_hot: f64,
     pub P_0: f64,
@@ -20,14 +20,12 @@ pub struct ConditionsConfig {
 #[cfg(test)]
 mod test {
     use crate::{
-        chx,
-        engine::{ComponentsConfig, EngineConfig},
-        fluid, hhx, regen,
+        chx, engine, fluid, hhx, regen,
         types::{InnerLoopConfig, ODEConfig, OuterLoopConfig, SolverConfig, ToleranceConfig},
         ws,
     };
 
-    use super::{ConditionsConfig, Config};
+    use super::{Conditions, Config};
 
     #[track_caller]
     fn check_config(toml_str: &str, expected_config: Config) {
@@ -98,9 +96,9 @@ mod test {
             P_0 = 100
             "#,
             Config {
-                engine: EngineConfig {
+                engine: engine::Config {
                     fluid: fluid::Config::Hydrogen(fluid::ModelConfig::IdealGas),
-                    components: ComponentsConfig {
+                    components: engine::ComponentsConfig {
                         chx: chx::Config::FixedApproach(Default::default()),
                         hhx: hhx::Config::FixedApproach(Default::default()),
                         regen: regen::Config::FixedApproach(Default::default()),
@@ -130,7 +128,7 @@ mod test {
                         num_timesteps: 20,
                     },
                 },
-                conditions: ConditionsConfig {
+                conditions: Conditions {
                     T_cold: 20.,
                     T_hot: 50.,
                     P_0: 100.,

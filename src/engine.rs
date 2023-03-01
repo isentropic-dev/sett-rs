@@ -76,7 +76,7 @@ impl<T: Fluid> Engine<T> {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct EngineConfig {
+pub struct Config {
     pub fluid: fluid::Config,
     pub components: ComponentsConfig,
 }

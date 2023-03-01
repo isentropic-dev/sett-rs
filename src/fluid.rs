@@ -96,7 +96,7 @@ pub enum Config {
 pub enum ModelConfig {
     IdealGas,
     RefProp,
-    FIT,
+    Fit,
 }
 
 impl Config {
@@ -105,12 +105,12 @@ impl Config {
             Config::Hydrogen(model) => match model {
                 ModelConfig::IdealGas => IdealGas::hydrogen(),
                 ModelConfig::RefProp => todo!(),
-                ModelConfig::FIT => todo!(),
+                ModelConfig::Fit => todo!(),
             },
             Config::Helium(model) => match model {
                 ModelConfig::IdealGas => IdealGas::helium(),
                 ModelConfig::RefProp => todo!(),
-                ModelConfig::FIT => todo!(),
+                ModelConfig::Fit => todo!(),
             },
         }
     }
