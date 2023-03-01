@@ -6,10 +6,10 @@ use crate::{
 };
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct Config {
-    engine: engine::Config,
-    solver: SolverConfig,
-    conditions: ConditionsConfig,
+pub struct Config {
+    pub engine: engine::Config,
+    pub solver: SolverConfig,
+    pub conditions: ConditionsConfig,
 }
 
 #[cfg(test)]

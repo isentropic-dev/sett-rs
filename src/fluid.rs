@@ -4,6 +4,7 @@ mod refprop;
 
 // Export all available fluid models
 pub use ideal_gas::IdealGas;
+
 use serde::Deserialize;
 
 pub trait Fluid {
@@ -97,25 +98,4 @@ pub enum ModelConfig {
     IdealGas,
     RefProp,
     Fit,
-}
-
-impl Config {
-    #[must_use]
-    /// # Panics
-    ///
-    /// - If the fluid or fluid model is not supported.
-    pub fn into(&self) -> impl Fluid {
-        match self {
-            Config::Hydrogen(model) => match model {
-                ModelConfig::IdealGas => IdealGas::hydrogen(),
-                ModelConfig::RefProp => todo!(),
-                ModelConfig::Fit => todo!(),
-            },
-            Config::Helium(model) => match model {
-                ModelConfig::IdealGas => IdealGas::helium(),
-                ModelConfig::RefProp => todo!(),
-                ModelConfig::Fit => todo!(),
-            },
-        }
-    }
 }
