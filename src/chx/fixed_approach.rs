@@ -16,7 +16,7 @@ pub struct FixedApproach {
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
 /// Configuration for a fixed approach cold heat exchanger.
-pub struct FixedApproachConfig {
+pub struct Config {
     pub vol: f64,
     pub DT: f64,
     pub R_hyd: f64,
@@ -74,7 +74,7 @@ impl Default for FixedApproach {
     }
 }
 
-impl Default for FixedApproachConfig {
+impl Default for Config {
     fn default() -> Self {
         Self {
             vol: 4e-5_f64,
@@ -85,8 +85,8 @@ impl Default for FixedApproachConfig {
     }
 }
 
-impl From<FixedApproachConfig> for FixedApproach {
-    fn from(config: FixedApproachConfig) -> Self {
+impl From<Config> for FixedApproach {
+    fn from(config: Config) -> Self {
         let parasitics = ParasiticPower {
             mechanical: config.W_parasitic,
             ..ParasiticPower::default()

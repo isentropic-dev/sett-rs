@@ -8,7 +8,7 @@ pub struct NuclearIsomerGPU3 {}
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct NuclearIsomerGPU3Config {}
+pub struct Config {}
 
 impl HotHeatExchanger for NuclearIsomerGPU3 {
     fn volume(&self) -> f64 {
@@ -28,8 +28,8 @@ impl HotHeatExchanger for NuclearIsomerGPU3 {
     }
 }
 
-impl From<NuclearIsomerGPU3Config> for NuclearIsomerGPU3 {
-    fn from(_: NuclearIsomerGPU3Config) -> Self {
+impl From<Config> for NuclearIsomerGPU3 {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

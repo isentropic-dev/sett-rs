@@ -15,7 +15,7 @@ pub struct FixedApproach {
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct FixedApproachConfig {
+pub struct Config {
     pub(crate) vol: f64,
     pub(crate) DT: f64,
     pub(crate) R_hyd: f64,
@@ -73,7 +73,7 @@ impl Default for FixedApproach {
     }
 }
 
-impl Default for FixedApproachConfig {
+impl Default for Config {
     fn default() -> Self {
         Self {
             vol: 1e-4_f64,
@@ -84,8 +84,8 @@ impl Default for FixedApproachConfig {
     }
 }
 
-impl From<FixedApproachConfig> for FixedApproach {
-    fn from(config: FixedApproachConfig) -> Self {
+impl From<Config> for FixedApproach {
+    fn from(config: Config) -> Self {
         let parasitics = ParasiticPower {
             thermal: config.Q_parasitic,
             ..ParasiticPower::default()

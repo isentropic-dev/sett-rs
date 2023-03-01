@@ -22,7 +22,7 @@ pub struct Geometry {
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct SinusoidalDriveConfig {
+pub struct Config {
     pub(crate) frequency: f64,
     pub(crate) phase_angle: f64,
     pub(crate) V_swept_c: f64,
@@ -74,7 +74,7 @@ impl WorkingSpaces for SinusoidalDrive {
     }
 }
 
-impl Default for SinusoidalDriveConfig {
+impl Default for Config {
     fn default() -> Self {
         Self {
             frequency: 66.6667,
@@ -92,8 +92,8 @@ impl Default for SinusoidalDriveConfig {
     }
 }
 
-impl From<SinusoidalDriveConfig> for SinusoidalDrive {
-    fn from(config: SinusoidalDriveConfig) -> Self {
+impl From<Config> for SinusoidalDrive {
+    fn from(config: Config) -> Self {
         let parasitics = Parasitics {
             comp: ParasiticPower {
                 mechanical: config.W_parasitic_c,

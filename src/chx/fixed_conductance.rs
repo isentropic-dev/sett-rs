@@ -7,7 +7,7 @@ use super::{ColdHeatExchanger, State};
 pub struct FixedConductance {}
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct FixedConductanceConfig {}
+pub struct Config {}
 
 impl ColdHeatExchanger for FixedConductance {
     fn volume(&self) -> f64 {
@@ -27,8 +27,8 @@ impl ColdHeatExchanger for FixedConductance {
     }
 }
 
-impl From<FixedConductanceConfig> for FixedConductance {
-    fn from(_: FixedConductanceConfig) -> Self {
+impl From<Config> for FixedConductance {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

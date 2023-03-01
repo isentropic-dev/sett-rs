@@ -6,7 +6,7 @@ pub struct GPU3 {}
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct GPU3Config {}
+pub struct Config {}
 
 impl WorkingSpaces for GPU3 {
     fn frequency(&self, _state: &State) -> f64 {
@@ -26,8 +26,8 @@ impl WorkingSpaces for GPU3 {
     }
 }
 
-impl From<GPU3Config> for GPU3 {
-    fn from(_: GPU3Config) -> Self {
+impl From<Config> for GPU3 {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

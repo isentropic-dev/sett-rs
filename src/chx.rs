@@ -4,7 +4,7 @@ mod gpu3;
 mod mod2;
 
 // Export all available cold heat exchanger components
-pub use fixed_approach::{FixedApproach, FixedApproachConfig};
+pub use fixed_approach::FixedApproach;
 pub use fixed_conductance::FixedConductance;
 pub use gpu3::GPU3;
 pub use mod2::Mod2;
@@ -12,8 +12,6 @@ pub use mod2::Mod2;
 use serde::Deserialize;
 
 use crate::types::{HeatExchanger, ParasiticPower};
-
-use self::{fixed_conductance::FixedConductanceConfig, gpu3::GPU3Config, mod2::Mod2Config};
 
 /// Allows a type to act as a cold heat exchanger
 pub trait ColdHeatExchanger {
@@ -47,9 +45,9 @@ pub struct State {
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum ColdHeatExchangerConfig {
-    FixedApproach(FixedApproachConfig),
-    FixedConductance(FixedConductanceConfig),
-    GPU3(GPU3Config),
-    Mod2(Mod2Config),
+pub enum Config {
+    FixedApproach(fixed_approach::Config),
+    FixedConductance(fixed_conductance::Config),
+    GPU3(gpu3::Config),
+    Mod2(mod2::Config),
 }

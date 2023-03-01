@@ -20,13 +20,11 @@ pub struct ConditionsConfig {
 #[cfg(test)]
 mod test {
     use crate::{
-        chx::ColdHeatExchangerConfig,
+        chx,
         engine::{ComponentsConfig, EngineConfig},
-        fluid::{FluidConfig, FluidModelConfig},
-        hhx::HotHeatExchangerConfig,
-        regen::RegeneratorConfig,
+        fluid, hhx, regen,
         types::{InnerLoopConfig, ODEConfig, OuterLoopConfig, SolverConfig, ToleranceConfig},
-        ws::WorkingSpacesConfig,
+        ws,
     };
 
     use super::{ConditionsConfig, Config};
@@ -101,12 +99,12 @@ mod test {
             "#,
             Config {
                 engine: EngineConfig {
-                    fluid: FluidConfig::Hydrogen(FluidModelConfig::IdealGas),
+                    fluid: fluid::Config::Hydrogen(fluid::ModelConfig::IdealGas),
                     components: ComponentsConfig {
-                        chx: ColdHeatExchangerConfig::FixedApproach(Default::default()),
-                        hhx: HotHeatExchangerConfig::FixedApproach(Default::default()),
-                        regen: RegeneratorConfig::FixedApproach(Default::default()),
-                        ws: WorkingSpacesConfig::Sinusoidal(Default::default()),
+                        chx: chx::Config::FixedApproach(Default::default()),
+                        hhx: hhx::Config::FixedApproach(Default::default()),
+                        regen: regen::Config::FixedApproach(Default::default()),
+                        ws: ws::Config::Sinusoidal(Default::default()),
                     },
                 },
                 solver: SolverConfig {

@@ -84,33 +84,33 @@ pub trait Fluid {
     fn du_dT_P(&self, temp: f64, pres: f64) -> f64;
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum FluidConfig {
-    Hydrogen(FluidModelConfig),
-    Helium(FluidModelConfig),
+pub enum Config {
+    Hydrogen(ModelConfig),
+    Helium(ModelConfig),
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case", tag = "model")]
-pub enum FluidModelConfig {
+pub enum ModelConfig {
     IdealGas,
     RefProp,
     FIT,
 }
 
-impl FluidConfig {
+impl Config {
     pub fn into(&self) -> impl Fluid {
         match self {
-            FluidConfig::Hydrogen(model) => match model {
-                FluidModelConfig::IdealGas => IdealGas::hydrogen(),
-                FluidModelConfig::RefProp => todo!(),
-                FluidModelConfig::FIT => todo!(),
+            Config::Hydrogen(model) => match model {
+                ModelConfig::IdealGas => IdealGas::hydrogen(),
+                ModelConfig::RefProp => todo!(),
+                ModelConfig::FIT => todo!(),
             },
-            FluidConfig::Helium(model) => match model {
-                FluidModelConfig::IdealGas => IdealGas::helium(),
-                FluidModelConfig::RefProp => todo!(),
-                FluidModelConfig::FIT => todo!(),
+            Config::Helium(model) => match model {
+                ModelConfig::IdealGas => IdealGas::helium(),
+                ModelConfig::RefProp => todo!(),
+                ModelConfig::FIT => todo!(),
             },
         }
     }

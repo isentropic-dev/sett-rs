@@ -13,11 +13,6 @@ use serde::Deserialize;
 
 use crate::types::{HeatExchanger, ParasiticPower};
 
-use self::{
-    fixed_approach::FixedApproachConfig, fixed_conductance::FixedConductanceConfig,
-    gpu3::GPU3Config, mod2::Mod2Config,
-};
-
 /// Allows a type to act as a regenerator
 pub trait Regenerator {
     /// Returns the void volume of the heat exchanger
@@ -50,9 +45,9 @@ pub struct State {
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum RegeneratorConfig {
-    FixedApproach(FixedApproachConfig),
-    FixedConductance(FixedConductanceConfig),
-    GPU3(GPU3Config),
-    Mod2(Mod2Config),
+pub enum Config {
+    FixedApproach(fixed_approach::Config),
+    FixedConductance(fixed_conductance::Config),
+    GPU3(gpu3::Config),
+    Mod2(mod2::Config),
 }

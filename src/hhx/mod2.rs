@@ -8,7 +8,7 @@ pub struct Mod2 {}
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct Mod2Config {}
+pub struct Config {}
 
 impl HotHeatExchanger for Mod2 {
     fn volume(&self) -> f64 {
@@ -27,8 +27,8 @@ impl HotHeatExchanger for Mod2 {
     }
 }
 
-impl From<Mod2Config> for Mod2 {
-    fn from(_: Mod2Config) -> Self {
+impl From<Config> for Mod2 {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

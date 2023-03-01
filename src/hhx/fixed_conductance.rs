@@ -6,7 +6,7 @@ pub struct FixedConductance {}
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct FixedConductanceConfig {}
+pub struct Config {}
 
 impl HotHeatExchanger for FixedConductance {
     fn volume(&self) -> f64 {
@@ -26,8 +26,8 @@ impl HotHeatExchanger for FixedConductance {
     }
 }
 
-impl From<FixedConductanceConfig> for FixedConductance {
-    fn from(_: FixedConductanceConfig) -> Self {
+impl From<Config> for FixedConductance {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

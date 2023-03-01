@@ -7,7 +7,7 @@ use super::{ColdHeatExchanger, State};
 pub struct GPU3 {}
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct GPU3Config {}
+pub struct Config {}
 
 impl ColdHeatExchanger for GPU3 {
     fn volume(&self) -> f64 {
@@ -27,8 +27,8 @@ impl ColdHeatExchanger for GPU3 {
     }
 }
 
-impl From<GPU3Config> for GPU3 {
-    fn from(_: GPU3Config) -> Self {
+impl From<Config> for GPU3 {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

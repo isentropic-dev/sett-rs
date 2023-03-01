@@ -16,12 +16,6 @@ use serde::Deserialize;
 
 use crate::types::{HeatExchanger, ParasiticPower};
 
-use self::{
-    fixed_approach::FixedApproachConfig, fixed_conductance::FixedConductanceConfig,
-    gpu3::GPU3Config, mod2::Mod2Config, ni_gpu3::NuclearIsomerGPU3Config,
-    ni_mod2::NuclearIsomerMod2Config,
-};
-
 /// Allows a type to act as a hot heat exchanger
 pub trait HotHeatExchanger {
     /// Returns the internal volume of the heat exchanger
@@ -54,11 +48,11 @@ pub struct State {
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum HotHeatExchangerConfig {
-    FixedApproach(FixedApproachConfig),
-    FixedConductance(FixedConductanceConfig),
-    GPU3(GPU3Config),
-    Mod2(Mod2Config),
-    GPU3NI(NuclearIsomerGPU3Config),
-    Mod2NI(NuclearIsomerMod2Config),
+pub enum Config {
+    FixedApproach(fixed_approach::Config),
+    FixedConductance(fixed_conductance::Config),
+    GPU3(gpu3::Config),
+    Mod2(mod2::Config),
+    GPU3NI(ni_gpu3::Config),
+    Mod2NI(ni_mod2::Config),
 }

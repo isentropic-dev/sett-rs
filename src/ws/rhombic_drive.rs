@@ -6,7 +6,7 @@ pub struct RhombicDrive {}
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct RhombicDriveConfig {}
+pub struct Config {}
 
 impl WorkingSpaces for RhombicDrive {
     fn frequency(&self, _state: &State) -> f64 {
@@ -26,8 +26,8 @@ impl WorkingSpaces for RhombicDrive {
     }
 }
 
-impl From<RhombicDriveConfig> for RhombicDrive {
-    fn from(_: RhombicDriveConfig) -> Self {
+impl From<Config> for RhombicDrive {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }
