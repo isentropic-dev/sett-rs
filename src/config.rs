@@ -1,31 +1,29 @@
 use serde::Deserialize;
 
-use crate::{engine, types::SolverConfig};
+use crate::{
+    engine,
+    types::{ConditionsConfig, SolverConfig},
+};
 
 #[derive(Debug, Deserialize, PartialEq)]
 struct Config {
     engine: engine::Config,
     solver: SolverConfig,
-    conditions: Conditions,
-}
-
-#[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq)]
-pub struct Conditions {
-    pub T_cold: f64,
-    pub T_hot: f64,
-    pub P_0: f64,
+    conditions: ConditionsConfig,
 }
 
 #[cfg(test)]
 mod test {
     use crate::{
         chx, engine, fluid, hhx, regen,
-        types::{InnerLoopConfig, ODEConfig, OuterLoopConfig, SolverConfig, ToleranceConfig},
+        types::{
+            ConditionsConfig, InnerLoopConfig, ODEConfig, OuterLoopConfig, SolverConfig,
+            ToleranceConfig,
+        },
         ws,
     };
 
-    use super::{Conditions, Config};
+    use super::Config;
 
     #[track_caller]
     fn check_config(toml_str: &str, expected_config: Config) {
@@ -128,7 +126,7 @@ mod test {
                         num_timesteps: 20,
                     },
                 },
-                conditions: Conditions {
+                conditions: ConditionsConfig {
                     T_cold: 20.,
                     T_hot: 50.,
                     P_0: 100.,

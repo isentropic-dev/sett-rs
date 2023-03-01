@@ -98,6 +98,14 @@ pub struct ToleranceConfig {
     pub rel: f64,
 }
 
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ConditionsConfig {
+    pub T_cold: f64,
+    pub T_hot: f64,
+    pub P_0: f64,
+}
+
 impl OdeTolerance {
     #[must_use]
     pub fn new(abs: f64, rel: f64) -> Self {
@@ -145,6 +153,16 @@ impl From<SolverConfig> for RunSettings {
                 inner: config.inner_loop.max_iterations as usize,
                 outer: config.outer_loop.max_iterations as usize,
             },
+        }
+    }
+}
+
+impl From<ConditionsConfig> for RunInputs {
+    fn from(config: ConditionsConfig) -> Self {
+        Self {
+            pres_zero: config.P_0,
+            temp_sink: config.T_cold,
+            temp_source: config.T_hot,
         }
     }
 }
