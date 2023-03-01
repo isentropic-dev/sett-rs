@@ -11,9 +11,12 @@ pub use self::{cycle::Cycle, solver::MatrixDecomposition};
 
 // Export input types
 pub use self::{
-    inputs::HeatExchanger as HeatExchangerInputs, inputs::Inputs,
+    cycle::SteadyStateInputs, inputs::HeatExchanger as HeatExchangerInputs, inputs::Inputs,
     inputs::Regenerator as RegeneratorInputs, inputs::WorkingSpace as WorkingSpaceInputs,
 };
+
+// Export matrix decomposition solvers
+pub use self::solver::{SvdDefault as SvdDefaultSolver, LU as LuSolver, QR as QrSolver};
 
 /// Conditions within the cycle
 ///
@@ -150,19 +153,17 @@ mod tests {
     #[test]
     fn should_not_find_steady_state() {
         let engine = TestEngine::from_file("refprop_hydrogen.json");
-
-        let num_points = 100;
-        let ic_hint = Conditions {
-            P: 10e6,
-            T_c: 300.0,
-            T_e: 500.0,
+        let inputs = SteadyStateInputs {
+            pres_zero: 10e6,
+            temp_comp_hint: 300.,
+            temp_exp_hint: 500.,
+            num_points: 100,
+            ode_tol: OdeTolerance::new(1e-4, 1e-4),
+            conv_tol: ConvergenceTolerance::new(1e-4, 1e-4),
+            max_iters: 20,
         };
-        let ode_tol = OdeTolerance::new(1e-4, 1e-4);
-        let conv_tol = ConvergenceTolerance::new(1e-4, 1e-4);
-        let max_iter = 20;
-
         engine
-            .find_steady_state(num_points, ic_hint, ode_tol, conv_tol, max_iter)
+            .find_steady_state(inputs)
             .expect_err("should not find steady state");
     }
 }

@@ -1,6 +1,12 @@
 use itertools::Itertools;
 
-use crate::{fluid::Fluid, state_equations, types::ConvergenceTolerance, ws::ThermalResistance};
+use crate::{
+    chx,
+    fluid::Fluid,
+    hhx, regen, state_equations,
+    types::{ConvergenceTolerance, HeatExchanger, RunInputs},
+    ws,
+};
 
 use super::Components;
 
@@ -26,13 +32,19 @@ pub struct Pressure {
 /// Constant engine temperatures in K
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Temperatures {
-    pub sink: f64,       // T_cold
-    pub chx: f64,        // T_k
-    pub regen_cold: f64, // T_r_cold
-    pub regen_avg: f64,  // T_r
-    pub regen_hot: f64,  // T_r_hot
-    pub hhx: f64,        // T_l
-    pub source: f64,     // T_hot
+    pub sink: f64,
+    pub chx: f64,
+    pub regen: RegenTemp,
+    pub hhx: f64,
+    pub source: f64,
+}
+
+/// Temperatures associated with the regenerator
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RegenTemp {
+    pub cold: f64, // T_r_cold
+    pub avg: f64,  // T_r
+    pub hot: f64,  // T_r_hot
 }
 
 /// Average mass flow rates through the heat exchangers in kg/s
@@ -64,11 +76,11 @@ pub struct HeatFlows {
 /// If a `RegenImbalance` is positive, the cold and hot sides are calculated according to:
 ///
 ///   `T_r_cold = T_k + approach`
-///   `T_r_hot = T_l - approach - imbalance`
+///   `T_r_hot = T_l - (approach + imbalance)`
 ///
 /// If a `RegenImbalance` is negative, the cold and hot sides are calculated according to:
 ///
-///    `T_r_cold = T_k + approach - imbalance`
+///    `T_r_cold = T_k + (approach - imbalance)`
 ///    `T_r_hot = T_l - approach`
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -76,7 +88,7 @@ pub struct RegenImbalance(f64);
 
 /// Time-discretized state values within a Stirling engine
 #[allow(non_snake_case)]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Values {
     pub time: Vec<f64>,
     pub P: Vec<f64>,
@@ -91,17 +103,6 @@ pub struct Values {
     pub Q_dot_l: Vec<f64>,
 }
 
-/// Average conditions in a heat exchanger
-#[allow(non_snake_case)]
-pub struct HeatExchanger {
-    pub temp: f64,
-    pub pres: f64,
-    pub dens: f64,
-    pub cp: f64,
-    pub m_dot: f64,
-    pub Q_dot: f64,
-}
-
 impl<T: Fluid> State<T> {
     /// Return `self` updated from new `state_equations::Values`
     ///
@@ -109,14 +110,99 @@ impl<T: Fluid> State<T> {
     /// `values` do not change the `State` within `tol`, then the original
     /// `State` is returned as `Err(self)`.
     #[allow(clippy::result_large_err)]
-    #[allow(clippy::unused_self)] // TODO: remove when function is implemented
     pub fn update(
         self,
         _components: &Components,
         _values: &Values,
         _tol: ConvergenceTolerance,
     ) -> Result<Self, Self> {
-        todo!()
+        Err(self) // TODO: for now we assume state is always converged
+    }
+
+    /// Return the `ws::State` that corresponds to this `engine::State`
+    pub(super) fn ws(&self) -> ws::State {
+        ws::State { pres: self.pres }
+    }
+
+    /// Return the `chx::State` that corresponds to this `engine::State`
+    pub(super) fn chx(&self) -> chx::State {
+        chx::State {
+            hxr: HeatExchanger {
+                temp: self.temp.chx,
+                pres: self.pres.avg,
+                dens: self.fluid.dens(self.temp.chx, self.pres.avg),
+                cp: self.fluid.cp(self.temp.chx, self.pres.avg),
+                m_dot: self.mass_flow.chx,
+                Q_dot: self.heat_flow.chx,
+            },
+            sink_temp: self.temp.sink,
+        }
+    }
+
+    /// Return the `regen::State` that corresponds to this `engine::State`
+    pub(super) fn regen(&self) -> regen::State {
+        regen::State {
+            hxr: HeatExchanger {
+                temp: self.temp.regen.avg,
+                pres: self.pres.avg,
+                dens: self.fluid.dens(self.temp.regen.avg, self.pres.avg),
+                cp: self.fluid.cp(self.temp.regen.avg, self.pres.avg),
+                m_dot: self.mass_flow.regen,
+                Q_dot: self.heat_flow.regen,
+            },
+        }
+    }
+
+    /// Return the `hhx::State` that corresponds to this `engine::State`
+    pub(super) fn hhx(&self) -> hhx::State {
+        hhx::State {
+            hxr: HeatExchanger {
+                temp: self.temp.hhx,
+                pres: self.pres.avg,
+                dens: self.fluid.dens(self.temp.hhx, self.pres.avg),
+                cp: self.fluid.cp(self.temp.hhx, self.pres.avg),
+                m_dot: self.mass_flow.hhx,
+                Q_dot: self.heat_flow.hhx,
+            },
+            source_temp: self.temp.source,
+        }
+    }
+
+    /// Create an initial `State` hint
+    #[allow(clippy::similar_names)]
+    pub(super) fn new_hint(components: &Components, fluid: T, inputs: RunInputs) -> Self {
+        let RunInputs {
+            pres_zero,
+            temp_sink,
+            temp_source,
+        } = inputs;
+
+        // Make some initial state in order to get approach temperatures from components
+        let regen_imbalance = RegenImbalance::default();
+        let mut state = Self {
+            fluid,
+            pres: Pressure::constant(pres_zero),
+            temp: Temperatures::from_env(temp_sink, temp_source),
+            mass_flow: MassFlows::constant(0.),
+            heat_flow: HeatFlows::constant(0.),
+            regen_imbalance,
+        };
+
+        // Request approach temperatures
+        let chx_approach = components.chx.approach(&state.chx());
+        let regen_approach = components.regen.approach(&state.regen());
+        let hhx_approach = components.hhx.approach(&state.hhx());
+
+        // Use approaches to update temperatures in the initial state
+        let temp_chx = temp_sink + chx_approach;
+        let temp_hhx = temp_source - hhx_approach;
+        let temp_regen = regen_imbalance.regen_temp(temp_chx, temp_hhx, regen_approach);
+
+        state.temp.chx = temp_chx;
+        state.temp.regen = temp_regen;
+        state.temp.hhx = temp_hhx;
+
+        state
     }
 }
 
@@ -133,7 +219,7 @@ impl Pressure {
 
     /// Calculate `Pressure` from `Values`
     pub fn from_values(values: &Values) -> Self {
-        let t_final = values.time.last().expect("values cannot be empty");
+        let t_final = values.final_time();
         let avg = integrate(&values.time, &values.P) / t_final;
         let t_zero = values.P[0];
         let max = *values
@@ -163,14 +249,15 @@ impl Temperatures {
         let chx = sink;
         let hhx = source;
         let regen_avg = (sink + source) * 0.5;
-        let regen_cold = (chx + regen_avg) * 0.5;
-        let regen_hot = (hhx + regen_avg) * 0.5;
+        let regen = RegenTemp {
+            cold: (chx + regen_avg) * 0.5,
+            avg: regen_avg,
+            hot: (hhx + regen_avg) * 0.5,
+        };
         Self {
             sink,
             chx,
-            regen_cold,
-            regen_avg,
-            regen_hot,
+            regen,
             hhx,
             source,
         }
@@ -188,38 +275,11 @@ impl MassFlows {
     }
 
     /// Calculate `MassFlows` from `Values`
-    #[allow(clippy::similar_names)]
     pub fn from_values(values: &Values) -> Self {
-        let t_final = values.time.last().expect("values cannot be empty");
-
-        // Average time-discretized mass flow rate in cold heat exchanger
-        let m_dot_chx: Vec<_> = values
-            .m_dot_ck
-            .iter()
-            .zip(values.m_dot_kr.iter())
-            .map(|(ck, kr)| 0.5 * (ck + kr).abs()) // flow in different directions cancel each other before taking abs
-            .collect();
-
-        // Average time-discretized mass flow rate in regenerator
-        let m_dot_regen: Vec<_> = values
-            .m_dot_kr
-            .iter()
-            .zip(values.m_dot_rl.iter())
-            .map(|(kr, rl)| 0.5 * (kr + rl).abs())
-            .collect();
-
-        // Average time-discretized mass flow rate in hot heat exchanger
-        let m_dot_hhx: Vec<_> = values
-            .m_dot_rl
-            .iter()
-            .zip(values.m_dot_le.iter())
-            .map(|(rl, le)| 0.5 * (rl + le).abs())
-            .collect();
-
         Self {
-            chx: integrate(&values.time, &m_dot_chx) / t_final,
-            regen: integrate(&values.time, &m_dot_regen) / t_final,
-            hhx: integrate(&values.time, &m_dot_hhx) / t_final,
+            chx: values.m_dot_chx(),
+            regen: values.m_dot_regen(),
+            hhx: values.m_dot_hhx(),
         }
     }
 }
@@ -246,17 +306,21 @@ impl HeatFlows {
         values: &Values,
         temp_chx: f64,
         temp_hhx: f64,
-        thermal_res: ThermalResistance,
+        thermal_res: ws::ThermalResistance,
     ) -> Self {
-        let t_final = values.time.last().expect("values cannot be empty");
+        let t_final = values.final_time();
 
         // Cold heat exchanger
-        let Q_dot_c: Vec<_> = values
-            .T_c
-            .iter()
-            .map(|T_c| (T_c - temp_chx) / thermal_res.comp) // heat flow from fluid in compression space to chx
-            .collect();
-        let Q_dot_c = integrate(&values.time, &Q_dot_c) / t_final;
+        let Q_dot_c = if thermal_res.comp.is_infinite() {
+            0. // no heat flow if compression space is adiabatic
+        } else {
+            let Q_dot_c: Vec<_> = values
+                .T_c
+                .iter()
+                .map(|T_c| (T_c - temp_chx) / thermal_res.comp) // heat flow from fluid in compression space to chx
+                .collect();
+            integrate(&values.time, &Q_dot_c) / t_final
+        };
         let Q_dot_k = integrate(&values.time, &values.Q_dot_k) / t_final;
         let chx = Q_dot_c + Q_dot_k;
 
@@ -264,16 +328,58 @@ impl HeatFlows {
         let regen = integrate(&values.time, &values.Q_dot_r) / t_final;
 
         // Hot heat exchanger
-        let Q_dot_e: Vec<_> = values
-            .T_e
-            .iter()
-            .map(|T_e| (temp_hhx - T_e) / thermal_res.exp) // heat flow from hhx to fluid in expansion space
-            .collect();
-        let Q_dot_e = integrate(&values.time, &Q_dot_e) / t_final;
+        let Q_dot_e = if thermal_res.exp.is_infinite() {
+            0. // no heat flow if expansion space is adiabatic
+        } else {
+            let Q_dot_e: Vec<_> = values
+                .T_e
+                .iter()
+                .map(|T_e| (temp_hhx - T_e) / thermal_res.exp) // heat flow from hhx to fluid in expansion space
+                .collect();
+            integrate(&values.time, &Q_dot_e) / t_final
+        };
         let Q_dot_l = integrate(&values.time, &values.Q_dot_l) / t_final;
         let hhx = Q_dot_e + Q_dot_l;
 
         Self { chx, regen, hhx }
+    }
+}
+
+impl Values {
+    /// Return the last `self.time` value
+    fn final_time(&self) -> f64 {
+        *self.time.last().expect("values cannot be empty")
+    }
+
+    /// Calculate the average mass flow rate through the cold heat exchanger
+    fn m_dot_chx(&self) -> f64 {
+        self.m_dot_avg(self.m_dot_ck.iter(), self.m_dot_kr.iter())
+    }
+
+    /// Calculate the average mass flow rate through the regenerator
+    fn m_dot_regen(&self) -> f64 {
+        self.m_dot_avg(self.m_dot_kr.iter(), self.m_dot_rl.iter())
+    }
+
+    /// Calculate the average mass flow rate through the hot heat exchanger
+    fn m_dot_hhx(&self) -> f64 {
+        self.m_dot_avg(self.m_dot_rl.iter(), self.m_dot_le.iter())
+    }
+
+    /// Calculate the average mass flow rate through a control volume
+    ///
+    /// The control volume is defined by the two iterators that provide time-
+    /// discretized mass flow rates across the `left` and `right` sides of it.
+    fn m_dot_avg<'a>(
+        &self,
+        left: impl Iterator<Item = &'a f64>,
+        right: impl Iterator<Item = &'a f64>,
+    ) -> f64 {
+        let m_dot: Vec<_> = left
+            .zip(right)
+            .map(|(l, r)| 0.5 * (l + r).abs()) // flow in different directions cancel each other before taking abs
+            .collect();
+        integrate(&self.time, &m_dot) / self.final_time()
     }
 }
 
@@ -322,6 +428,30 @@ impl From<Vec<state_equations::Values>> for Values {
             Q_dot_r,
             Q_dot_l,
         }
+    }
+}
+
+impl RegenImbalance {
+    /// Calculate a `RegenTemperature`
+    #[allow(clippy::similar_names)]
+    pub fn regen_temp(self, temp_chx: f64, temp_hhx: f64, approach: f64) -> RegenTemp {
+        let cold_approach = if self.0 >= 0. {
+            approach
+        } else {
+            approach - self.0
+        };
+        let hot_approach = if self.0 >= 0. {
+            approach + self.0
+        } else {
+            approach
+        };
+
+        let cold = temp_chx + cold_approach;
+        let hot = temp_hhx - hot_approach;
+        let avg = (temp_hhx - 0.5 * hot_approach - temp_chx - 0.5 * cold_approach)
+            / ((temp_hhx - 0.5 * hot_approach) / (temp_chx + 0.5 * cold_approach)).ln();
+
+        RegenTemp { cold, avg, hot }
     }
 }
 
@@ -440,7 +570,7 @@ mod tests {
         };
         let temp_chx = 300.0;
         let temp_hhx = 800.0;
-        let thermal_res = ThermalResistance::default(); // default is `f64::INFINITY`
+        let thermal_res = ws::ThermalResistance::default(); // default is `f64::INFINITY`
         let expected = HeatFlows {
             chx: 1.0,
             regen: 0.0,
@@ -460,7 +590,7 @@ mod tests {
         };
         let temp_chx = 300.0;
         let temp_hhx = 800.0;
-        let thermal_res = ThermalResistance {
+        let thermal_res = ws::ThermalResistance {
             comp: 1.0,
             exp: 50.0,
         };

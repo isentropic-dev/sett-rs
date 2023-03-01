@@ -5,7 +5,7 @@ use super::{ColdHeatExchanger, State};
 pub struct FixedConductance {}
 
 impl ColdHeatExchanger for FixedConductance {
-    fn volume(&self, _state: &State) -> f64 {
+    fn volume(&self) -> f64 {
         todo!()
     }
 

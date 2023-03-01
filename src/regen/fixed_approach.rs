@@ -22,6 +22,7 @@ impl FixedApproach {
     /// * `approach` - the approach temperature of the heat exchanger (in K).
     /// * `parasitics` - the parasitic losses associated with the heat exchanger (all in W).
     ///
+    #[must_use]
     pub fn new(volume: f64, R_hyd: f64, approach: f64, parasitics: ParasiticPower) -> Self {
         Self {
             R_hyd,
@@ -33,7 +34,7 @@ impl FixedApproach {
 }
 
 impl Regenerator for FixedApproach {
-    fn volume(&self, _state: &State) -> f64 {
+    fn volume(&self) -> f64 {
         self.volume
     }
 

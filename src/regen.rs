@@ -1,15 +1,15 @@
 mod fixed_approach;
-// mod fixed_conductance;
-// mod gpu3;
-// mod mod2;
+mod fixed_conductance;
+mod gpu3;
+mod mod2;
 
 // Export all available regenerator components
 pub use fixed_approach::FixedApproach;
-// pub use fixed_conductance::FixedConductance;
-// pub use gpu3::GPU3;
-// pub use mod2::Mod2;
+pub use fixed_conductance::FixedConductance;
+pub use gpu3::GPU3;
+pub use mod2::Mod2;
 
-use crate::types::{Environment, ParasiticPower};
+use crate::types::{HeatExchanger, ParasiticPower};
 
 /// Allows a type to act as a regenerator
 pub trait Regenerator {
@@ -17,7 +17,7 @@ pub trait Regenerator {
     ///
     /// The void volume is the volume in cubic meters (m^3) that is
     /// occupied by the working fluid inside the regenerator.
-    fn volume(&self, state: &State) -> f64;
+    fn volume(&self) -> f64;
 
     /// Returns the approach temperature of the regenerator
     ///
@@ -35,20 +35,7 @@ pub trait Regenerator {
     fn parasitics(&self, state: &State) -> ParasiticPower;
 }
 
-/// Information available to a component for calculating cycle parameters
+/// Information available to a regenerator component for calculating its parameters
 pub struct State {
-    env: Environment,
-    avg: Average,
-}
-
-#[allow(non_snake_case)]
-pub struct Average {
-    temp: f64,
-    pres: f64,
-    dens: f64,
-    inte: f64, // TODO: needed?
-    enth: f64, // TODO: needed?
-    cp: f64,
-    m_dot: f64,
-    Q_dot: f64,
+    pub hxr: HeatExchanger,
 }

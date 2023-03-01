@@ -5,7 +5,7 @@ use super::{ColdHeatExchanger, State};
 pub struct Mod2 {}
 
 impl ColdHeatExchanger for Mod2 {
-    fn volume(&self, _state: &State) -> f64 {
+    fn volume(&self) -> f64 {
         todo!()
     }
 

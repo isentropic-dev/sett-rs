@@ -3,7 +3,7 @@ use super::{HotHeatExchanger, State};
 pub struct FixedConductance {}
 
 impl HotHeatExchanger for FixedConductance {
-    fn volume(&self, _state: &State) -> f64 {
+    fn volume(&self) -> f64 {
         todo!()
     }
 
