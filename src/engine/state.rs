@@ -114,14 +114,9 @@ impl<T: Fluid> State<T> {
         self,
         _components: &Components,
         _values: &Values,
-        tol: ConvergenceTolerance,
+        _tol: ConvergenceTolerance,
     ) -> Result<Self, Self> {
-        // TODO: For now we will assume components are always converged unless tol is very small
-        if tol.abs < 1e-9 {
-            Ok(self)
-        } else {
-            Err(self)
-        }
+        Err(self) // TODO: for now we assume state is always converged
     }
 
     /// Return the `ws::State` that corresponds to this `engine::State`
