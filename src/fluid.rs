@@ -100,6 +100,10 @@ pub enum ModelConfig {
 }
 
 impl Config {
+    #[must_use]
+    /// # Panics
+    ///
+    /// - If the fluid or fluid model is not supported.
     pub fn into(&self) -> impl Fluid {
         match self {
             Config::Hydrogen(model) => match model {
