@@ -47,8 +47,7 @@ mod test {
     fn deserialize_config() {
         check_config(
             r#"
-            [engine.fluid]
-            name = "hydrogen"
+            [engine.fluid.hydrogen]
             model = "ideal_gas"
 
             [engine.components.chx]

@@ -85,14 +85,14 @@ pub trait Fluid {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case", tag = "name", content = "model")]
+#[serde(rename_all = "snake_case")]
 pub enum FluidConfig {
     Hydrogen(FluidModelConfig),
     Helium(FluidModelConfig),
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", tag = "model")]
 pub enum FluidModelConfig {
     IdealGas,
     RefProp,
