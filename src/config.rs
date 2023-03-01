@@ -6,15 +6,15 @@ use crate::{engine::EngineConfig, types::SolverConfig};
 struct Config {
     engine: EngineConfig,
     solver: SolverConfig,
-    conditions: Conditions,
+    conditions: ConditionsConfig,
 }
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct Conditions {
-    pub(crate) T_cold: f64,
-    pub(crate) T_hot: f64,
-    pub(crate) P_0: f64,
+pub struct ConditionsConfig {
+    pub T_cold: f64,
+    pub T_hot: f64,
+    pub P_0: f64,
 }
 
 #[cfg(test)]
@@ -29,7 +29,7 @@ mod test {
         ws::WorkingSpacesConfig,
     };
 
-    use super::{Conditions, Config};
+    use super::{ConditionsConfig, Config};
 
     #[track_caller]
     fn check_config(toml_str: &str, expected_config: Config) {
@@ -137,7 +137,7 @@ mod test {
                         num_timesteps: 20,
                     },
                 },
-                conditions: Conditions {
+                conditions: ConditionsConfig {
                     T_cold: 20.,
                     T_hot: 50.,
                     P_0: 100.,
