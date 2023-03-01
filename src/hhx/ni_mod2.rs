@@ -7,7 +7,7 @@ use super::{HotHeatExchanger, State};
 pub struct NuclearIsomerMod2 {}
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct Config {}
 
 impl HotHeatExchanger for NuclearIsomerMod2 {

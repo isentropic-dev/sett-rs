@@ -6,7 +6,7 @@ use super::{ColdHeatExchanger, State};
 
 pub struct GPU3 {}
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct Config {}
 
 impl ColdHeatExchanger for GPU3 {

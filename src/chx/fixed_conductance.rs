@@ -6,7 +6,7 @@ use super::{ColdHeatExchanger, State};
 
 pub struct FixedConductance {}
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct Config {}
 
 impl ColdHeatExchanger for FixedConductance {

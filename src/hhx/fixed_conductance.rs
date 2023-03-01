@@ -5,7 +5,7 @@ use super::{HotHeatExchanger, State};
 pub struct FixedConductance {}
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct Config {}
 
 impl HotHeatExchanger for FixedConductance {

@@ -5,7 +5,7 @@ use super::{CompVolume, ExpVolume, Parasitics, State, ThermalResistance, Working
 pub struct Mod2 {}
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct Config {}
 
 impl WorkingSpaces for Mod2 {

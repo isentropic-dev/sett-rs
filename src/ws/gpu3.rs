@@ -5,7 +5,7 @@ use super::{CompVolume, ExpVolume, Parasitics, State, ThermalResistance, Working
 pub struct GPU3 {}
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct Config {}
 
 impl WorkingSpaces for GPU3 {

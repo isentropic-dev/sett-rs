@@ -7,7 +7,7 @@ use super::State;
 pub struct GPU3 {}
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct Config {}
 
 impl super::Regenerator for GPU3 {
