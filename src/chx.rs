@@ -46,7 +46,7 @@ pub struct State {
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case", tag = "type")]
+#[serde(rename_all = "snake_case")]
 pub enum ColdHeatExchangerConfig {
     FixedApproach(FixedApproachConfig),
     FixedConductance(FixedConductanceConfig),

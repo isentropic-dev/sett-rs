@@ -50,30 +50,26 @@ mod test {
             [engine.fluid.hydrogen]
             model = "ideal_gas"
 
-            [engine.components.chx]
-            type = "fixed_approach"
+            [engine.components.chx.fixed_approach]
             vol = 4e-5
             DT = 40
             R_hyd = 0
             W_parasitic = 0
 
-            [engine.components.hhx]
-            type = "fixed_approach"
+            [engine.components.hhx.fixed_approach]
             vol = 1e-4
             DT = 100
             R_hyd = 0
             W_parasitic = 0
             Q_parasitic = 0
 
-            [engine.components.regen]
-            type = "fixed_approach"
+            [engine.components.regen.fixed_approach]
             vol = 1e-4
             DT = 10
             R_hyd = 0
             Q_parasitic = 0
 
-            [engine.components.ws]
-            type = "sinusoidal"
+            [engine.components.ws.sinusoidal]
             frequency = 66.6667
             phase_angle = 90
             V_swept_c = 1.128e-4
