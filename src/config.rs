@@ -1,8 +1,9 @@
 use serde::Deserialize;
 
 use crate::{
-    engine,
-    types::{ConditionsConfig, SolverConfig},
+    chx, engine, fluid, hhx, regen,
+    types::{ConditionsConfig, LegacyConditionsConfig, SolverConfig},
+    ws,
 };
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -10,6 +11,27 @@ pub struct Config {
     pub engine: engine::Config,
     pub solver: SolverConfig,
     pub conditions: ConditionsConfig,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct LegacyConfig {
+    // pub fluid: fluid::LegacyConfig,
+    // pub ws: ws::LegacyConfig,
+    // pub chx: chx::LegacyConfig,
+    // pub regen: regen::LegacyConfig,
+    // pub hhx: hhx::LegacyConfig,
+    // pub solver: types::LegacySolverConfig,
+    pub conditions: LegacyConditionsConfig,
+}
+
+impl From<LegacyConfig> for Config {
+    fn from(legacy_config: LegacyConfig) -> Self {
+        Self {
+            engine: todo!(),
+            solver: todo!(),
+            conditions: legacy_config.conditions.into(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -24,6 +46,7 @@ mod test {
     };
 
     use super::Config;
+    use super::LegacyConfig;
 
     #[track_caller]
     fn check_config(toml_str: &str, expected_config: Config) {
@@ -33,6 +56,18 @@ mod test {
             .unwrap();
         assert_eq!(
             settings.try_deserialize::<Config>().unwrap(),
+            expected_config
+        );
+    }
+
+    #[track_caller]
+    fn check_legacy_config(toml_str: &str, expected_config: Config) {
+        let settings = config::Config::builder()
+            .add_source(config::File::from_str(toml_str, config::FileFormat::Toml))
+            .build()
+            .unwrap();
+        assert_eq!(
+            settings.try_deserialize::<LegacyConfig>().unwrap().into(),
             expected_config
         );
     }

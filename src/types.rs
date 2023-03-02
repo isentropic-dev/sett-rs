@@ -105,6 +105,14 @@ pub struct ConditionsConfig {
     pub pres_zero: f64,
 }
 
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct LegacyConditionsConfig {
+    pub T_cold: f64,
+    pub T_hot: f64,
+    pub P_0: f64,
+}
+
 impl OdeTolerance {
     #[must_use]
     pub fn new(abs: f64, rel: f64) -> Self {
@@ -162,6 +170,16 @@ impl From<ConditionsConfig> for RunInputs {
             pres_zero: config.pres_zero,
             temp_sink: config.temp_sink,
             temp_source: config.temp_source,
+        }
+    }
+}
+
+impl From<LegacyConditionsConfig> for ConditionsConfig {
+    fn from(config: LegacyConditionsConfig) -> Self {
+        Self {
+            temp_sink: config.T_cold,
+            temp_source: config.T_hot,
+            pres_zero: config.P_0,
         }
     }
 }
