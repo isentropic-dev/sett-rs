@@ -16,7 +16,7 @@ pub struct Config {
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct LegacyConfig {
     // pub fluid: fluid::LegacyConfig,
-    // pub ws: ws::LegacyConfig,
+    pub ws: ws::LegacyConfig,
     pub chx: chx::LegacyConfig,
     pub regen: regen::LegacyConfig,
     pub hhx: hhx::LegacyConfig,
@@ -33,7 +33,7 @@ impl From<LegacyConfig> for Config {
                     chx: legacy_config.chx.into(),
                     hhx: legacy_config.hhx.into(),
                     regen: legacy_config.regen.into(),
-                    ws: todo!(),
+                    ws: legacy_config.ws.into(),
                 },
             },
             solver: legacy_config.solver.into(),

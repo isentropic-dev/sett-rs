@@ -81,3 +81,23 @@ pub enum Config {
     GPU3(gpu3::Config),
     Mod2(mod2::Config),
 }
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case", tag = "model", content = "params")]
+pub enum LegacyConfig {
+    Sinusoidal(sinusoidal_drive::Config),
+    Rhombic(rhombic_drive::Config),
+    GPU3(gpu3::Config),
+    Mod2(mod2::Config),
+}
+
+impl LegacyConfig {
+    pub fn into(self) -> Config {
+        match self {
+            LegacyConfig::Sinusoidal(params) => Config::Sinusoidal(params),
+            LegacyConfig::Rhombic(params) => Config::Rhombic(params),
+            LegacyConfig::GPU3(params) => Config::GPU3(params),
+            LegacyConfig::Mod2(params) => Config::Mod2(params),
+        }
+    }
+}
