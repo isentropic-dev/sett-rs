@@ -48,7 +48,7 @@ mod test {
         chx, engine, fluid, hhx, regen,
         types::{
             ConditionsConfig, InnerLoopConfig, OdeConfig, OuterLoopConfig, SolverConfig,
-            ToleranceConfig,
+            ToleranceConfig, DEFAULT_MAX_ITERS,
         },
         ws,
     };
@@ -191,34 +191,34 @@ mod test {
                 "ws": {
                     "model": "Sinusoidal",
                     "params": {
-                        "frequency": 66.6667
-                        "phase_angle": 90
-                        "V_swept_c": 1.128e-4
-                        "V_clearance_c": 4.68e-5
-                        "R_c": inf
-                        "W_parasitic_c": 0
-                        "V_swept_e": 1.128e-4
-                        "V_clearance_e": 1.68e-5
-                        "R_e": inf
-                        "W_parasitic_e": 0
+                        "frequency": 66.6667,
+                        "phase_angle": 90,
+                        "V_swept_c": 1.128e-4,
+                        "V_clearance_c": 4.68e-5,
+                        "R_c": "Inf",
+                        "W_parasitic_c": 0,
+                        "V_swept_e": 1.128e-4,
+                        "V_clearance_e": 1.68e-5,
+                        "R_e": "Inf",
+                        "W_parasitic_e": 0,
                         "Q_parasitic_e": 0
                     } 
                 },
                 "chx": {
                     "model": "FixedApproach",
                     "params": {
-                        "vol": 4e-5
-                        "DT": 40
-                        "R_hyd": 0
+                        "vol": 4e-5,
+                        "DT": 40,
+                        "R_hyd": 0,
                         "W_parasitic": 0
                     }
                 },
                 "regen": {
                     "model": "FixedApproach",
                     "params": {
-                        "vol": 1e-4
-                        "DT": 10
-                        "R_hyd": 0
+                        "vol": 1e-4,
+                        "DT": 10,
+                        "R_hyd": 0,
                         "Q_parasitic": 0
                     }
                 
@@ -226,10 +226,10 @@ mod test {
                 "hhx": {
                     "model": "FixedApproach",
                     "params": {
-                        "vol": 1e-4
-                        "DT": 100
-                        "R_hyd": 0
-                        "W_parasitic": 0
+                        "vol": 1e-4,
+                        "DT": 100,
+                        "R_hyd": 0,
+                        "W_parasitic": 0,
                         "Q_parasitic": 0
                     }
                 },
@@ -272,14 +272,14 @@ mod test {
                             abs: 1e-6,
                             rel: 1e-6,
                         },
-                        max_iterations: 10,
+                        max_iterations: DEFAULT_MAX_ITERS,
                     },
                     outer_loop: OuterLoopConfig {
                         tolerance: ToleranceConfig {
                             abs: 1e-8,
                             rel: 1e-8,
                         },
-                        max_iterations: 10,
+                        max_iterations: DEFAULT_MAX_ITERS,
                     },
                     ode: OdeConfig {
                         tolerance: ToleranceConfig {

@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-const DEFAULT_MAX_ITERS: u32 = 20;
+pub const DEFAULT_MAX_ITERS: u32 = 20;
 
 /// Inputs to an engine run
 #[derive(Debug, Clone, Copy)]
@@ -87,6 +87,7 @@ pub struct LegacySolverConfig {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub enum LegacyOdeSolver {
     Ode45,
 }
