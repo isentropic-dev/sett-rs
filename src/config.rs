@@ -17,7 +17,7 @@ pub struct Config {
 pub struct LegacyConfig {
     // pub fluid: fluid::LegacyConfig,
     // pub ws: ws::LegacyConfig,
-    // pub chx: chx::LegacyConfig,
+    pub chx: chx::LegacyConfig,
     pub regen: regen::LegacyConfig,
     pub hhx: hhx::LegacyConfig,
     pub solver: LegacySolverConfig,
@@ -30,7 +30,7 @@ impl From<LegacyConfig> for Config {
             engine: engine::Config {
                 fluid: todo!(),
                 components: engine::ComponentsConfig {
-                    chx: todo!(),
+                    chx: legacy_config.chx.into(),
                     hhx: legacy_config.hhx.into(),
                     regen: legacy_config.regen.into(),
                     ws: todo!(),
