@@ -71,7 +71,7 @@ pub struct HeatExchanger {
 pub struct SolverConfig {
     pub inner_loop: InnerLoopConfig,
     pub outer_loop: OuterLoopConfig,
-    pub ode: ODEConfig,
+    pub ode: OdeConfig,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -87,7 +87,7 @@ pub struct OuterLoopConfig {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct ODEConfig {
+pub struct OdeConfig {
     pub tolerance: ToleranceConfig,
     pub num_timesteps: u32,
 }

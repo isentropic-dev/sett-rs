@@ -17,7 +17,7 @@ mod test {
     use crate::{
         chx, engine, fluid, hhx, regen,
         types::{
-            ConditionsConfig, InnerLoopConfig, ODEConfig, OuterLoopConfig, SolverConfig,
+            ConditionsConfig, InnerLoopConfig, OdeConfig, OuterLoopConfig, SolverConfig,
             ToleranceConfig,
         },
         ws,
@@ -118,7 +118,7 @@ mod test {
                         },
                         max_iterations: 10,
                     },
-                    ode: ODEConfig {
+                    ode: OdeConfig {
                         tolerance: ToleranceConfig {
                             abs: 1e-8,
                             rel: 1e-8,
