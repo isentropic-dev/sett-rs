@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 use crate::types::ParasiticPower;
 
 use super::{HotHeatExchanger, State};
@@ -9,6 +11,16 @@ pub struct FixedApproach {
     volume: f64,
     approach: f64,
     parasitics: ParasiticPower,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Config {
+    pub vol: f64,
+    pub DT: f64,
+    pub R_hyd: f64,
+    pub W_parasitic: f64,
+    pub Q_parasitic: f64,
 }
 
 #[allow(non_snake_case)]
@@ -58,6 +70,34 @@ impl Default for FixedApproach {
             volume: 1.0e-4_f64,
             approach: 100.,
             parasitics: ParasiticPower::default(),
+        }
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            vol: 1e-4_f64,
+            DT: 100.,
+            R_hyd: 0.,
+            W_parasitic: 0.,
+            Q_parasitic: 0.,
+        }
+    }
+}
+
+impl From<Config> for FixedApproach {
+    fn from(config: Config) -> Self {
+        let parasitics = ParasiticPower {
+            mechanical: config.W_parasitic,
+            thermal: config.Q_parasitic,
+            ..ParasiticPower::default()
+        };
+        Self {
+            R_hyd: config.R_hyd,
+            volume: config.vol,
+            approach: config.DT,
+            parasitics,
         }
     }
 }

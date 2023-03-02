@@ -1,8 +1,13 @@
+use serde::Deserialize;
+
 use crate::types::ParasiticPower;
 
 use super::{ColdHeatExchanger, State};
 
 pub struct FixedConductance {}
+
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+pub struct Config {}
 
 impl ColdHeatExchanger for FixedConductance {
     fn volume(&self) -> f64 {
@@ -18,6 +23,12 @@ impl ColdHeatExchanger for FixedConductance {
     }
 
     fn parasitics(&self, _state: &State) -> ParasiticPower {
+        todo!()
+    }
+}
+
+impl From<Config> for FixedConductance {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

@@ -1,8 +1,14 @@
+use serde::Deserialize;
+
 use crate::types::ParasiticPower;
 
 use super::{HotHeatExchanger, State};
 
 pub struct NuclearIsomerGPU3 {}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+pub struct Config {}
 
 impl HotHeatExchanger for NuclearIsomerGPU3 {
     fn volume(&self) -> f64 {
@@ -18,6 +24,12 @@ impl HotHeatExchanger for NuclearIsomerGPU3 {
     }
 
     fn parasitics(&self, _state: &State) -> ParasiticPower {
+        todo!()
+    }
+}
+
+impl From<Config> for NuclearIsomerGPU3 {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

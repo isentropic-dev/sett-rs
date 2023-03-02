@@ -1,4 +1,8 @@
-use std::f64::consts::PI;
+use std::f64::{consts::PI, INFINITY};
+
+use serde::Deserialize;
+
+use crate::types::ParasiticPower;
 
 use super::{CompVolume, ExpVolume, Parasitics, State, ThermalResistance, WorkingSpaces};
 
@@ -14,6 +18,22 @@ pub struct SinusoidalDrive {
 pub struct Geometry {
     pub clearance_volume: f64,
     pub swept_volume: f64,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Config {
+    pub(crate) frequency: f64,
+    pub(crate) phase_angle: f64,
+    pub(crate) V_swept_c: f64,
+    pub(crate) V_clearance_c: f64,
+    pub(crate) R_c: f64,
+    pub(crate) W_parasitic_c: f64,
+    pub(crate) V_swept_e: f64,
+    pub(crate) V_clearance_e: f64,
+    pub(crate) R_e: f64,
+    pub(crate) W_parasitic_e: f64,
+    pub(crate) Q_parasitic_e: f64,
 }
 
 impl WorkingSpaces for SinusoidalDrive {
@@ -51,6 +71,57 @@ impl WorkingSpaces for SinusoidalDrive {
 
     fn parasitics(&self, _state: &State) -> Parasitics {
         self.parasitics
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            frequency: 66.6667,
+            phase_angle: 90.,
+            V_swept_c: 1.128e-4,
+            V_clearance_c: 4.68e-5,
+            R_c: INFINITY,
+            W_parasitic_c: 0.,
+            V_swept_e: 1.128e-4,
+            V_clearance_e: 1.68e-5,
+            R_e: INFINITY,
+            W_parasitic_e: 0.,
+            Q_parasitic_e: 0.,
+        }
+    }
+}
+
+impl From<Config> for SinusoidalDrive {
+    fn from(config: Config) -> Self {
+        let parasitics = Parasitics {
+            comp: ParasiticPower {
+                mechanical: config.W_parasitic_c,
+                ..ParasiticPower::default()
+            },
+            exp: ParasiticPower {
+                thermal: config.Q_parasitic_e,
+                mechanical: config.W_parasitic_e,
+                ..ParasiticPower::default()
+            },
+        };
+        Self {
+            frequency: config.frequency,
+            phase_angle: config.phase_angle,
+            comp_geometry: Geometry {
+                clearance_volume: config.V_clearance_c,
+                swept_volume: config.V_swept_c,
+            },
+            exp_geometry: Geometry {
+                clearance_volume: config.V_clearance_e,
+                swept_volume: config.V_swept_e,
+            },
+            thermal_resistance: ThermalResistance {
+                comp: config.R_c,
+                exp: config.R_e,
+            },
+            parasitics,
+        }
     }
 }
 

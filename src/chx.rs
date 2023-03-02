@@ -9,6 +9,8 @@ pub use fixed_conductance::FixedConductance;
 pub use gpu3::GPU3;
 pub use mod2::Mod2;
 
+use serde::Deserialize;
+
 use crate::types::{HeatExchanger, ParasiticPower};
 
 /// Allows a type to act as a cold heat exchanger
@@ -38,4 +40,14 @@ pub trait ColdHeatExchanger {
 pub struct State {
     pub hxr: HeatExchanger,
     pub sink_temp: f64,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum Config {
+    FixedApproach(fixed_approach::Config),
+    FixedConductance(fixed_conductance::Config),
+    GPU3(gpu3::Config),
+    Mod2(mod2::Config),
 }

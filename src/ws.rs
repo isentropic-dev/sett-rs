@@ -7,6 +7,7 @@ pub mod sinusoidal_drive;
 pub use gpu3::GPU3;
 pub use mod2::Mod2;
 pub use rhombic_drive::RhombicDrive;
+use serde::Deserialize;
 pub use sinusoidal_drive::SinusoidalDrive;
 
 use crate::{engine::Pressure, types::ParasiticPower};
@@ -69,4 +70,14 @@ pub struct Parasitics {
 /// Information available to a ws component for calculating its parameters
 pub struct State {
     pub pres: Pressure,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum Config {
+    Sinusoidal(sinusoidal_drive::Config),
+    Rhombic(rhombic_drive::Config),
+    GPU3(gpu3::Config),
+    Mod2(mod2::Config),
 }

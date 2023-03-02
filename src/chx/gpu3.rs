@@ -1,8 +1,13 @@
+use serde::Deserialize;
+
 use crate::types::ParasiticPower;
 
 use super::{ColdHeatExchanger, State};
 
 pub struct GPU3 {}
+
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+pub struct Config {}
 
 impl ColdHeatExchanger for GPU3 {
     fn volume(&self) -> f64 {
@@ -18,6 +23,12 @@ impl ColdHeatExchanger for GPU3 {
     }
 
     fn parasitics(&self, _state: &State) -> ParasiticPower {
+        todo!()
+    }
+}
+
+impl From<Config> for GPU3 {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

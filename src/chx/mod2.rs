@@ -1,8 +1,13 @@
+use serde::Deserialize;
+
 use crate::types::ParasiticPower;
 
 use super::{ColdHeatExchanger, State};
 
 pub struct Mod2 {}
+
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+pub struct Config {}
 
 impl ColdHeatExchanger for Mod2 {
     fn volume(&self) -> f64 {
@@ -18,6 +23,12 @@ impl ColdHeatExchanger for Mod2 {
     }
 
     fn parasitics(&self, _state: &State) -> ParasiticPower {
+        todo!()
+    }
+}
+
+impl From<Config> for Mod2 {
+    fn from(_: Config) -> Self {
         todo!()
     }
 }

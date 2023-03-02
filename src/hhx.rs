@@ -12,6 +12,7 @@ pub use gpu3::GPU3;
 pub use mod2::Mod2;
 pub use ni_gpu3::NuclearIsomerGPU3;
 pub use ni_mod2::NuclearIsomerMod2;
+use serde::Deserialize;
 
 use crate::types::{HeatExchanger, ParasiticPower};
 
@@ -42,4 +43,16 @@ pub trait HotHeatExchanger {
 pub struct State {
     pub hxr: HeatExchanger,
     pub source_temp: f64,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum Config {
+    FixedApproach(fixed_approach::Config),
+    FixedConductance(fixed_conductance::Config),
+    GPU3(gpu3::Config),
+    Mod2(mod2::Config),
+    GPU3NI(ni_gpu3::Config),
+    Mod2NI(ni_mod2::Config),
 }

@@ -2,10 +2,11 @@ mod run;
 mod state;
 
 use anyhow::{bail, Result};
+use serde::Deserialize;
 
 use crate::{
     chx,
-    fluid::Fluid,
+    fluid::{self, Fluid},
     hhx, regen,
     state_equations::{Cycle, MatrixDecomposition, SteadyStateInputs},
     types::{RunInputs, RunSettings},
@@ -71,6 +72,61 @@ impl<T: Fluid> Engine<T> {
         }
 
         bail!("not converged")
+    }
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Config {
+    pub fluid: fluid::Config,
+    pub components: ComponentsConfig,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ComponentsConfig {
+    pub chx: chx::Config,
+    pub hhx: hhx::Config,
+    pub regen: regen::Config,
+    pub ws: ws::Config,
+}
+
+impl From<ComponentsConfig> for Components {
+    fn from(config: ComponentsConfig) -> Self {
+        Self {
+            ws: match config.ws {
+                ws::Config::Sinusoidal(config) => Box::<ws::SinusoidalDrive>::new(config.into()),
+                ws::Config::Rhombic(config) => Box::<ws::RhombicDrive>::new(config.into()),
+                ws::Config::GPU3(config) => Box::<ws::GPU3>::new(config.into()),
+                ws::Config::Mod2(config) => Box::<ws::Mod2>::new(config.into()),
+            },
+            chx: match config.chx {
+                chx::Config::FixedApproach(config) => Box::<chx::FixedApproach>::new(config.into()),
+                chx::Config::FixedConductance(config) => {
+                    Box::<chx::FixedConductance>::new(config.into())
+                }
+                chx::Config::GPU3(config) => Box::<chx::GPU3>::new(config.into()),
+                chx::Config::Mod2(config) => Box::<chx::Mod2>::new(config.into()),
+            },
+            regen: match config.regen {
+                regen::Config::FixedApproach(config) => {
+                    Box::<regen::FixedApproach>::new(config.into())
+                }
+                regen::Config::FixedConductance(config) => {
+                    Box::<regen::FixedConductance>::new(config.into())
+                }
+                regen::Config::GPU3(config) => Box::<regen::GPU3>::new(config.into()),
+                regen::Config::Mod2(config) => Box::<regen::Mod2>::new(config.into()),
+            },
+            hhx: match config.hhx {
+                hhx::Config::FixedApproach(config) => Box::<hhx::FixedApproach>::new(config.into()),
+                hhx::Config::FixedConductance(config) => {
+                    Box::<hhx::FixedConductance>::new(config.into())
+                }
+                hhx::Config::GPU3(config) => Box::<hhx::GPU3>::new(config.into()),
+                hhx::Config::Mod2(config) => Box::<hhx::Mod2>::new(config.into()),
+                hhx::Config::GPU3NI(config) => Box::<hhx::NuclearIsomerGPU3>::new(config.into()),
+                hhx::Config::Mod2NI(config) => Box::<hhx::NuclearIsomerMod2>::new(config.into()),
+            },
+        }
     }
 }
 

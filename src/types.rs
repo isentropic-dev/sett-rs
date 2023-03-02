@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 /// Inputs to an engine run
 #[derive(Debug, Clone, Copy)]
 pub struct RunInputs {
@@ -65,6 +67,44 @@ pub struct HeatExchanger {
     pub Q_dot: f64,
 }
 
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct SolverConfig {
+    pub inner_loop: InnerLoopConfig,
+    pub outer_loop: OuterLoopConfig,
+    pub ode: OdeConfig,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct InnerLoopConfig {
+    pub tolerance: ToleranceConfig,
+    pub max_iterations: u32,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct OuterLoopConfig {
+    pub tolerance: ToleranceConfig,
+    pub max_iterations: u32,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct OdeConfig {
+    pub tolerance: ToleranceConfig,
+    pub num_timesteps: u32,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ToleranceConfig {
+    pub abs: f64,
+    pub rel: f64,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ConditionsConfig {
+    pub temp_sink: f64,
+    pub temp_source: f64,
+    pub pres_zero: f64,
+}
+
 impl OdeTolerance {
     #[must_use]
     pub fn new(abs: f64, rel: f64) -> Self {
@@ -84,5 +124,44 @@ impl ConvergenceTolerance {
         let abs_change = new - old;
         let rel_change = abs_change / old;
         abs_change.abs() < self.abs && rel_change.abs() < self.rel
+    }
+}
+
+impl From<ToleranceConfig> for ConvergenceTolerance {
+    fn from(config: ToleranceConfig) -> Self {
+        Self {
+            abs: config.abs,
+            rel: config.rel,
+        }
+    }
+}
+
+impl From<SolverConfig> for RunSettings {
+    fn from(config: SolverConfig) -> Self {
+        Self {
+            resolution: config.ode.num_timesteps,
+            loop_tol: LoopTolerance {
+                inner: config.inner_loop.tolerance.into(),
+                outer: config.outer_loop.tolerance.into(),
+            },
+            ode_tol: OdeTolerance {
+                abs: config.ode.tolerance.abs,
+                rel: config.ode.tolerance.rel,
+            },
+            max_iters: MaxIters {
+                inner: config.inner_loop.max_iterations as usize,
+                outer: config.outer_loop.max_iterations as usize,
+            },
+        }
+    }
+}
+
+impl From<ConditionsConfig> for RunInputs {
+    fn from(config: ConditionsConfig) -> Self {
+        Self {
+            pres_zero: config.pres_zero,
+            temp_sink: config.temp_sink,
+            temp_source: config.temp_source,
+        }
     }
 }
