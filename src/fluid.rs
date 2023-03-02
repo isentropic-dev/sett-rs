@@ -110,23 +110,24 @@ pub enum LegacyConfig {
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct LegacyRefPropParams {
-    name: LegacyFluid,
+    name: LegacyFluidOption,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub enum LegacyFluid {
+pub enum LegacyFluidOption {
     Hydrogen,
     Helium,
 }
 
 impl LegacyConfig {
+    #[must_use]
     pub fn into(self) -> Config {
         match self {
             LegacyConfig::Hydrogen => Config::Hydrogen(ModelConfig::IdealGas),
             LegacyConfig::Helium => Config::Helium(ModelConfig::IdealGas),
             LegacyConfig::RealGasRefprop(params) => match params.name {
-                LegacyFluid::Hydrogen => Config::Hydrogen(ModelConfig::RefProp),
-                LegacyFluid::Helium => Config::Helium(ModelConfig::RefProp),
+                LegacyFluidOption::Hydrogen => Config::Hydrogen(ModelConfig::RefProp),
+                LegacyFluidOption::Helium => Config::Helium(ModelConfig::RefProp),
             },
         }
     }

@@ -1,4 +1,4 @@
-use sett_rs::LegacyConfig;
+use sett_rs::Legacy;
 
 fn main() {
     let config_str = r#"
@@ -80,7 +80,7 @@ fn main() {
         .add_source(config::File::from_str(config_str, config::FileFormat::Json))
         .build()
         .unwrap()
-        .try_deserialize::<LegacyConfig>()
+        .try_deserialize::<Legacy>()
         .unwrap();
 
     sett_rs::run_from_legacy_config(config);

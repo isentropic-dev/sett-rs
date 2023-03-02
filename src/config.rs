@@ -14,7 +14,7 @@ pub struct Config {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct LegacyConfig {
+pub struct Legacy {
     pub fluid: fluid::LegacyConfig,
     pub ws: ws::LegacyConfig,
     pub chx: chx::LegacyConfig,
@@ -24,8 +24,8 @@ pub struct LegacyConfig {
     pub conditions: LegacyConditionsConfig,
 }
 
-impl From<LegacyConfig> for Config {
-    fn from(legacy_config: LegacyConfig) -> Self {
+impl From<Legacy> for Config {
+    fn from(legacy_config: Legacy) -> Self {
         Self {
             engine: engine::Config {
                 fluid: legacy_config.fluid.into(),
@@ -54,7 +54,7 @@ mod test {
     };
 
     use super::Config;
-    use super::LegacyConfig;
+    use super::Legacy;
 
     #[track_caller]
     fn check_config(toml_str: &str, expected_config: Config) {
@@ -75,9 +75,7 @@ mod test {
             .build()
             .unwrap();
         assert_eq!(
-            <LegacyConfig as Into<Config>>::into(
-                settings.try_deserialize::<LegacyConfig>().unwrap()
-            ),
+            <Legacy as Into<Config>>::into(settings.try_deserialize::<Legacy>().unwrap()),
             expected_config
         );
     }

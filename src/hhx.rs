@@ -70,6 +70,7 @@ pub enum LegacyConfig {
 }
 
 impl LegacyConfig {
+    #[must_use]
     pub fn into(self) -> Config {
         match self {
             LegacyConfig::FixedApproach(params) => Config::FixedApproach(params),

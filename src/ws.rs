@@ -92,6 +92,7 @@ pub enum LegacyConfig {
 }
 
 impl LegacyConfig {
+    #[must_use]
     pub fn into(self) -> Config {
         match self {
             LegacyConfig::Sinusoidal(params) => Config::Sinusoidal(params),
