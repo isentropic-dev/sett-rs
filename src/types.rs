@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+const DEFAULT_MAX_ITERS: u32 = 20;
+
 /// Inputs to an engine run
 #[derive(Debug, Clone, Copy)]
 pub struct RunInputs {
@@ -72,6 +74,21 @@ pub struct SolverConfig {
     pub inner_loop: InnerLoopConfig,
     pub outer_loop: OuterLoopConfig,
     pub ode: OdeConfig,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LegacySolverConfig {
+    pub inner_loop_tolerance: ToleranceConfig,
+    pub outer_loop_tolerance: ToleranceConfig,
+    pub ode_tolerance: ToleranceConfig,
+    pub ode_solver: LegacyOdeSolver,
+    pub time_resolution: u32,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub enum LegacyOdeSolver {
+    Ode45,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -159,6 +176,25 @@ impl From<SolverConfig> for RunSettings {
             max_iters: MaxIters {
                 inner: config.inner_loop.max_iterations as usize,
                 outer: config.outer_loop.max_iterations as usize,
+            },
+        }
+    }
+}
+
+impl From<LegacySolverConfig> for SolverConfig {
+    fn from(config: LegacySolverConfig) -> Self {
+        Self {
+            inner_loop: InnerLoopConfig {
+                tolerance: config.inner_loop_tolerance,
+                max_iterations: DEFAULT_MAX_ITERS,
+            },
+            outer_loop: OuterLoopConfig {
+                tolerance: config.outer_loop_tolerance,
+                max_iterations: DEFAULT_MAX_ITERS,
+            },
+            ode: OdeConfig {
+                tolerance: config.ode_tolerance,
+                num_timesteps: config.time_resolution,
             },
         }
     }

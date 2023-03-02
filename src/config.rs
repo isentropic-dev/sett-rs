@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::{
     chx, engine, fluid, hhx, regen,
-    types::{ConditionsConfig, LegacyConditionsConfig, SolverConfig},
+    types::{ConditionsConfig, LegacyConditionsConfig, LegacySolverConfig, SolverConfig},
     ws,
 };
 
@@ -20,7 +20,7 @@ pub struct LegacyConfig {
     // pub chx: chx::LegacyConfig,
     // pub regen: regen::LegacyConfig,
     // pub hhx: hhx::LegacyConfig,
-    // pub solver: types::LegacySolverConfig,
+    pub solver: LegacySolverConfig,
     pub conditions: LegacyConditionsConfig,
 }
 
@@ -28,7 +28,7 @@ impl From<LegacyConfig> for Config {
     fn from(legacy_config: LegacyConfig) -> Self {
         Self {
             engine: todo!(),
-            solver: todo!(),
+            solver: legacy_config.solver.into(),
             conditions: legacy_config.conditions.into(),
         }
     }
