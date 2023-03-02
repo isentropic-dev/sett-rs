@@ -9,7 +9,7 @@ pub mod regen;
 pub mod types;
 pub mod ws;
 
-pub use crate::config::Config;
+pub use crate::config::{Config, LegacyConfig};
 pub use engine::{Components, Engine};
 pub use state_equations::{LuSolver, QrSolver, SvdDefaultSolver};
 
@@ -43,4 +43,8 @@ pub fn run_from_config(config: Config) {
     println!("P:     {:?}", engine.values.P);
     println!("T_c:   {:?}", engine.values.T_c);
     println!("T_e:   {:?}", engine.values.T_e);
+}
+
+pub fn run_from_legacy_config(config: LegacyConfig) {
+    run_from_config(config.into());
 }
