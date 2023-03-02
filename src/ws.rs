@@ -83,7 +83,7 @@ pub enum Config {
 }
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case", tag = "model", content = "params")]
+#[serde(tag = "model", content = "params")]
 pub enum LegacyConfig {
     Sinusoidal(sinusoidal_drive::Config),
     Rhombic(rhombic_drive::Config),
