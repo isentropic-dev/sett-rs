@@ -89,9 +89,9 @@ mod test {
             num_timesteps = 20
 
             [conditions]
-            T_cold = 20
-            T_hot = 50
-            P_0 = 100
+            temp_sink = 20
+            temp_source = 50
+            pres_zero = 100
             "#,
             Config {
                 engine: engine::Config {
@@ -127,9 +127,9 @@ mod test {
                     },
                 },
                 conditions: ConditionsConfig {
-                    T_cold: 20.,
-                    T_hot: 50.,
-                    P_0: 100.,
+                    temp_sink: 20.,
+                    temp_source: 50.,
+                    pres_zero: 100.,
                 },
             },
         )

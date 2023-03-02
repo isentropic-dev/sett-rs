@@ -98,12 +98,11 @@ pub struct ToleranceConfig {
     pub rel: f64,
 }
 
-#[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct ConditionsConfig {
-    pub T_cold: f64,
-    pub T_hot: f64,
-    pub P_0: f64,
+    pub temp_sink: f64,
+    pub temp_source: f64,
+    pub pres_zero: f64,
 }
 
 impl OdeTolerance {
@@ -160,9 +159,9 @@ impl From<SolverConfig> for RunSettings {
 impl From<ConditionsConfig> for RunInputs {
     fn from(config: ConditionsConfig) -> Self {
         Self {
-            pres_zero: config.P_0,
-            temp_sink: config.T_cold,
-            temp_source: config.T_hot,
+            pres_zero: config.pres_zero,
+            temp_sink: config.temp_sink,
+            temp_source: config.temp_source,
         }
     }
 }
