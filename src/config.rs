@@ -19,7 +19,7 @@ pub struct LegacyConfig {
     // pub ws: ws::LegacyConfig,
     // pub chx: chx::LegacyConfig,
     // pub regen: regen::LegacyConfig,
-    // pub hhx: hhx::LegacyConfig,
+    pub hhx: hhx::LegacyConfig,
     pub solver: LegacySolverConfig,
     pub conditions: LegacyConditionsConfig,
 }
@@ -27,7 +27,15 @@ pub struct LegacyConfig {
 impl From<LegacyConfig> for Config {
     fn from(legacy_config: LegacyConfig) -> Self {
         Self {
-            engine: todo!(),
+            engine: engine::Config {
+                fluid: todo!(),
+                components: engine::ComponentsConfig {
+                    chx: todo!(),
+                    hhx: legacy_config.hhx.into(),
+                    regen: todo!(),
+                    ws: todo!(),
+                },
+            },
             solver: legacy_config.solver.into(),
             conditions: legacy_config.conditions.into(),
         }

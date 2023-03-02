@@ -56,3 +56,28 @@ pub enum Config {
     GPU3NI(ni_gpu3::Config),
     Mod2NI(ni_mod2::Config),
 }
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case", tag = "model", content = "params")]
+pub enum LegacyConfig {
+    FixedApproach(fixed_approach::Config),
+    FixedConductance(fixed_conductance::Config),
+    GPU3(gpu3::Config),
+    Mod2(mod2::Config),
+    GPU3NI(ni_gpu3::Config),
+    Mod2NI(ni_mod2::Config),
+}
+
+impl LegacyConfig {
+    pub fn into(self) -> Config {
+        match self {
+            LegacyConfig::FixedApproach(params) => Config::FixedApproach(params),
+            LegacyConfig::FixedConductance(params) => Config::FixedConductance(params),
+            LegacyConfig::GPU3(params) => Config::GPU3(params),
+            LegacyConfig::Mod2(params) => Config::Mod2(params),
+            LegacyConfig::GPU3NI(params) => Config::GPU3NI(params),
+            LegacyConfig::Mod2NI(params) => Config::Mod2NI(params),
+        }
+    }
+}
