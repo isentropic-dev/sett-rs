@@ -106,22 +106,22 @@ mod test {
                 solver: SolverConfig {
                     inner_loop: InnerLoopConfig {
                         tolerance: ToleranceConfig {
-                            abs: 1e-6_f64,
-                            rel: 1e-6_f64,
+                            abs: 1e-6,
+                            rel: 1e-6,
                         },
                         max_iterations: 10,
                     },
                     outer_loop: OuterLoopConfig {
                         tolerance: ToleranceConfig {
-                            abs: 1e-8_f64,
-                            rel: 1e-8_f64,
+                            abs: 1e-8,
+                            rel: 1e-8,
                         },
                         max_iterations: 10,
                     },
                     ode: ODEConfig {
                         tolerance: ToleranceConfig {
-                            abs: 1e-8_f64,
-                            rel: 1e-8_f64,
+                            abs: 1e-8,
+                            rel: 1e-8,
                         },
                         num_timesteps: 20,
                     },

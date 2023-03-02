@@ -66,7 +66,7 @@ impl Default for FixedApproach {
     fn default() -> Self {
         Self {
             R_hyd: 0.,
-            volume: 1.0e-4_f64,
+            volume: 1.0e-4,
             approach: 10.,
             parasitics: ParasiticPower::default(),
         }
@@ -76,7 +76,7 @@ impl Default for FixedApproach {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            vol: 1e-4_f64,
+            vol: 1e-4,
             DT: 10.,
             R_hyd: 0.,
             Q_parasitic: 0.,
