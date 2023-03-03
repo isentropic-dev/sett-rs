@@ -193,11 +193,11 @@ mod test {
                         "phase_angle": 90,
                         "V_swept_c": 1.128e-4,
                         "V_clearance_c": 4.68e-5,
-                        "R_c": "Inf",
+                        "R_c": "inf",
                         "W_parasitic_c": 0,
                         "V_swept_e": 1.128e-4,
                         "V_clearance_e": 1.68e-5,
-                        "R_e": "Inf",
+                        "R_e": "inf",
                         "W_parasitic_e": 0,
                         "Q_parasitic_e": 0
                     } 
