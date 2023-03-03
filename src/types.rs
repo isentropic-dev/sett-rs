@@ -134,6 +134,7 @@ pub struct LegacyConditionsConfig {
 #[derive(Debug, Deserialize, PartialEq)]
 pub enum Material {
     SS304,
+    Multimet,
 }
 
 impl OdeTolerance {
