@@ -83,5 +83,5 @@ fn main() {
         .try_deserialize::<Legacy>()
         .unwrap();
 
-    sett_rs::run_from_legacy_config(config);
+    sett_rs::run_from_config(config);
 }

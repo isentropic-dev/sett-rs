@@ -16,7 +16,8 @@ pub use state_equations::{LuSolver, QrSolver, SvdDefaultSolver};
 /// # Panics
 ///
 /// If an unsupported fluid model is provided.
-pub fn run_from_config(config: Config) {
+pub fn run_from_config(config: impl Into<Config>) {
+    let config = config.into();
     let fluid = match config.engine.fluid {
         fluid::Config::Hydrogen(model) => match model {
             fluid::ModelConfig::IdealGas => fluid::IdealGas::hydrogen(),
@@ -43,8 +44,4 @@ pub fn run_from_config(config: Config) {
     println!("P:     {:?}", engine.values.P);
     println!("T_c:   {:?}", engine.values.T_c);
     println!("T_e:   {:?}", engine.values.T_e);
-}
-
-pub fn run_from_legacy_config(config: Legacy) {
-    run_from_config(config.into());
 }
