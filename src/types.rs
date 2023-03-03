@@ -131,6 +131,11 @@ pub struct LegacyConditionsConfig {
     pub P_0: f64,
 }
 
+#[derive(Debug, Deserialize, PartialEq)]
+pub enum Material {
+    SS304,
+}
+
 impl OdeTolerance {
     #[must_use]
     pub fn new(abs: f64, rel: f64) -> Self {

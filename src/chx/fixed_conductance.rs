@@ -6,8 +6,15 @@ use super::{ColdHeatExchanger, State};
 
 pub struct FixedConductance {}
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
-pub struct Config {}
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+/// Configuration for a fixed conductance cold heat exchanger.
+pub struct Config {
+    vol: f64,
+    UA: f64,
+    R_hyd: f64,
+    W_parasitic: f64,
+}
 
 impl ColdHeatExchanger for FixedConductance {
     fn volume(&self) -> f64 {
