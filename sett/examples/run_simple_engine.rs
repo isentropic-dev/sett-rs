@@ -1,4 +1,4 @@
-use sett_rs::{
+use sett::{
     chx, fluid, hhx, regen,
     types::{ConvergenceTolerance, LoopTolerance, MaxIters, OdeTolerance, RunInputs, RunSettings},
     ws::{self, sinusoidal_drive::Geometry, Parasitics, ThermalResistance},

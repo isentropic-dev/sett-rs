@@ -1,0 +1,22 @@
+[package]
+name = "sett"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.68"
+config = { version = "0.13.3", features = ["json", "yaml", "toml"] }
+itertools = "0.10.5"
+na = { package = "nalgebra", version = "0.31.4" }
+ode_solvers = "0.3.7"
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.91"
+serde_toml = "0.0.1"
+serde_yaml = "0.9.17"
+
+[dev-dependencies]
+approx = "0.5.1"
+insta = { version = "1.26.0", features = ["yaml"] }
+
+[lib]
+doctest = false

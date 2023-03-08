@@ -1,4 +1,4 @@
-use sett_rs::Config;
+use sett::Config;
 
 fn main() {
     let config_str = r#"
@@ -62,5 +62,5 @@ fn main() {
         .try_deserialize::<Config>()
         .unwrap();
 
-    sett_rs::run_from_config(config);
+    sett::run_from_config(config);
 }

@@ -1,4 +1,4 @@
-use sett_rs::Legacy;
+use sett::Legacy;
 
 fn main() {
     let config_str = r#"
@@ -85,5 +85,5 @@ fn main() {
         .try_deserialize::<Legacy>()
         .unwrap();
 
-    sett_rs::run_from_config(config);
+    sett::run_from_config(config);
 }
