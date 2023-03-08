@@ -2,6 +2,7 @@ mod fixed_approach;
 mod fixed_conductance;
 mod gpu3;
 mod mod2;
+mod types;
 
 // Export all available regenerator components
 pub use fixed_approach::FixedApproach;
@@ -54,4 +55,26 @@ pub enum Config {
     FixedConductance(fixed_conductance::Config),
     GPU3(gpu3::Config),
     Mod2(mod2::Config),
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(tag = "model", content = "params")]
+pub enum LegacyConfig {
+    FixedApproach(fixed_approach::Config),
+    FixedConductance(fixed_conductance::Config),
+    GPU3(gpu3::Config),
+    Mod2(mod2::Config),
+}
+
+impl LegacyConfig {
+    #[must_use]
+    pub fn into(self) -> Config {
+        match self {
+            LegacyConfig::FixedApproach(params) => Config::FixedApproach(params),
+            LegacyConfig::FixedConductance(params) => Config::FixedConductance(params),
+            LegacyConfig::GPU3(params) => Config::GPU3(params),
+            LegacyConfig::Mod2(params) => Config::Mod2(params),
+        }
+    }
 }

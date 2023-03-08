@@ -9,24 +9,27 @@ pub mod regen;
 pub mod types;
 pub mod ws;
 
-pub use crate::config::Config;
+pub use crate::config::{Config, Legacy};
 pub use engine::{Components, Engine};
 pub use state_equations::{LuSolver, QrSolver, SvdDefaultSolver};
 
 /// # Panics
 ///
 /// If an unsupported fluid model is provided.
-pub fn run_from_config(config: Config) {
+pub fn run_from_config(config: impl Into<Config>) {
+    let config = config.into();
     let fluid = match config.engine.fluid {
         fluid::Config::Hydrogen(model) => match model {
             fluid::ModelConfig::IdealGas => fluid::IdealGas::hydrogen(),
             fluid::ModelConfig::RefProp => todo!(),
             fluid::ModelConfig::Fit => todo!(),
+            fluid::ModelConfig::Custom => todo!(),
         },
         fluid::Config::Helium(model) => match model {
             fluid::ModelConfig::IdealGas => fluid::IdealGas::helium(),
             fluid::ModelConfig::RefProp => todo!(),
             fluid::ModelConfig::Fit => todo!(),
+            fluid::ModelConfig::Custom => todo!(),
         },
     };
 

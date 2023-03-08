@@ -1,4 +1,4 @@
-use std::f64::{consts::PI, INFINITY};
+use std::f64::consts::PI;
 
 use serde::Deserialize;
 
@@ -81,11 +81,11 @@ impl Default for Config {
             phase_angle: 90.,
             V_swept_c: 1.128e-4,
             V_clearance_c: 4.68e-5,
-            R_c: INFINITY,
+            R_c: f64::INFINITY,
             W_parasitic_c: 0.,
             V_swept_e: 1.128e-4,
             V_clearance_e: 1.68e-5,
-            R_e: INFINITY,
+            R_e: f64::INFINITY,
             W_parasitic_e: 0.,
             Q_parasitic_e: 0.,
         }

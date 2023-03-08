@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+pub const DEFAULT_MAX_ITERS: u32 = 20;
+
 /// Inputs to an engine run
 #[derive(Debug, Clone, Copy)]
 pub struct RunInputs {
@@ -75,6 +77,22 @@ pub struct SolverConfig {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LegacySolverConfig {
+    pub inner_loop_tolerance: ToleranceConfig,
+    pub outer_loop_tolerance: ToleranceConfig,
+    pub ode_tolerance: ToleranceConfig,
+    pub ode_solver: LegacyOdeSolver,
+    pub time_resolution: u32,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum LegacyOdeSolver {
+    Ode45,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct InnerLoopConfig {
     pub tolerance: ToleranceConfig,
     pub max_iterations: u32,
@@ -103,6 +121,21 @@ pub struct ConditionsConfig {
     pub temp_sink: f64,
     pub temp_source: f64,
     pub pres_zero: f64,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct LegacyConditionsConfig {
+    pub T_cold: f64,
+    pub T_hot: f64,
+    pub P_0: f64,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub enum Material {
+    SS304,
+    Multimet,
+    StainlessSteel,
 }
 
 impl OdeTolerance {
@@ -156,12 +189,41 @@ impl From<SolverConfig> for RunSettings {
     }
 }
 
+impl From<LegacySolverConfig> for SolverConfig {
+    fn from(config: LegacySolverConfig) -> Self {
+        Self {
+            inner_loop: InnerLoopConfig {
+                tolerance: config.inner_loop_tolerance,
+                max_iterations: DEFAULT_MAX_ITERS,
+            },
+            outer_loop: OuterLoopConfig {
+                tolerance: config.outer_loop_tolerance,
+                max_iterations: DEFAULT_MAX_ITERS,
+            },
+            ode: OdeConfig {
+                tolerance: config.ode_tolerance,
+                num_timesteps: config.time_resolution,
+            },
+        }
+    }
+}
+
 impl From<ConditionsConfig> for RunInputs {
     fn from(config: ConditionsConfig) -> Self {
         Self {
             pres_zero: config.pres_zero,
             temp_sink: config.temp_sink,
             temp_source: config.temp_source,
+        }
+    }
+}
+
+impl From<LegacyConditionsConfig> for ConditionsConfig {
+    fn from(config: LegacyConditionsConfig) -> Self {
+        Self {
+            temp_sink: config.T_cold,
+            temp_source: config.T_hot,
+            pres_zero: config.P_0,
         }
     }
 }

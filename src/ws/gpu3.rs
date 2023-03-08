@@ -5,8 +5,21 @@ use super::{CompVolume, ExpVolume, Parasitics, State, ThermalResistance, Working
 pub struct GPU3 {}
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq, Eq)]
-pub struct Config {}
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Config {
+    frequency: f64,
+    V_clearance_c: f64,
+    R_c: f64,
+    V_clearance_e: f64,
+    R_e: f64,
+    r_crank: f64,
+    L_conn: f64,
+    eccentricity: f64,
+    D: f64,
+    D_dr: f64,
+    L: f64,
+    h: f64,
+}
 
 impl WorkingSpaces for GPU3 {
     fn frequency(&self, _state: &State) -> f64 {
