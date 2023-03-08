@@ -2,6 +2,7 @@ mod config;
 mod engine;
 mod state_equations;
 
+pub mod api;
 pub mod chx;
 pub mod fluid;
 pub mod hhx;
