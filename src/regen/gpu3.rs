@@ -27,7 +27,7 @@ impl super::Regenerator for GPU3 {
         todo!()
     }
 
-    fn initial_approach(&self, _state: &State) -> f64 {
+    fn initial_approach(&self) -> f64 {
         todo!()
     }
 }

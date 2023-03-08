@@ -27,7 +27,7 @@ impl HotHeatExchanger for NuclearIsomerMod2 {
         todo!()
     }
 
-    fn initial_approach(&self, _state: &State) -> f64 {
+    fn initial_approach(&self) -> f64 {
         todo!()
     }
 }

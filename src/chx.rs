@@ -37,7 +37,7 @@ pub trait ColdHeatExchanger {
 
     /// Returns a reasonable initial approach temperature of the heat
     /// exchanger.
-    fn initial_approach(&self, state: &State) -> f64;
+    fn initial_approach(&self) -> f64;
 }
 
 /// Information available to a chx component for calculating its parameters
