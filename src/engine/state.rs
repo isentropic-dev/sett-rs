@@ -1,10 +1,9 @@
 use itertools::Itertools;
 
 use crate::{
-    chx,
     fluid::Fluid,
-    hhx, regen, state_equations,
-    types::{ConvergenceTolerance, HeatExchanger, RunInputs},
+    state_equations,
+    types::{ConvergenceTolerance, RunInputs},
     ws,
 };
 
@@ -122,50 +121,6 @@ impl<T: Fluid> State<T> {
     /// Return the `ws::State` that corresponds to this `engine::State`
     pub(super) fn ws(&self) -> ws::State {
         ws::State { pres: self.pres }
-    }
-
-    /// Return the `chx::State` that corresponds to this `engine::State`
-    pub(super) fn chx(&self) -> chx::State {
-        chx::State {
-            hxr: HeatExchanger {
-                temp: self.temp.chx,
-                pres: self.pres.avg,
-                dens: self.fluid.dens(self.temp.chx, self.pres.avg),
-                cp: self.fluid.cp(self.temp.chx, self.pres.avg),
-                m_dot: self.mass_flow.chx,
-                Q_dot: self.heat_flow.chx,
-            },
-            sink_temp: self.temp.sink,
-        }
-    }
-
-    /// Return the `regen::State` that corresponds to this `engine::State`
-    pub(super) fn regen(&self) -> regen::State {
-        regen::State {
-            hxr: HeatExchanger {
-                temp: self.temp.regen.avg,
-                pres: self.pres.avg,
-                dens: self.fluid.dens(self.temp.regen.avg, self.pres.avg),
-                cp: self.fluid.cp(self.temp.regen.avg, self.pres.avg),
-                m_dot: self.mass_flow.regen,
-                Q_dot: self.heat_flow.regen,
-            },
-        }
-    }
-
-    /// Return the `hhx::State` that corresponds to this `engine::State`
-    pub(super) fn hhx(&self) -> hhx::State {
-        hhx::State {
-            hxr: HeatExchanger {
-                temp: self.temp.hhx,
-                pres: self.pres.avg,
-                dens: self.fluid.dens(self.temp.hhx, self.pres.avg),
-                cp: self.fluid.cp(self.temp.hhx, self.pres.avg),
-                m_dot: self.mass_flow.hhx,
-                Q_dot: self.heat_flow.hhx,
-            },
-            source_temp: self.temp.source,
-        }
     }
 
     /// Create an initial `State` hint
