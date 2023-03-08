@@ -1,33 +1,28 @@
-use crate::engine::state;
-
 /// The results of an engine run
 pub struct RunResults {
     /// Engine efficiency (-)
     pub efficiency: Efficiency,
 
-    /// Engine heat (W)
-    pub heat: Heat,
-
-    /// Average heat flow rates through the heat exhangers (W)
-    pub heat_flow: state::HeatFlows,
+    /// Average heat flow rates (W)
+    pub heat_flow: HeatFlow,
 
     /// Average mass flow rates through the heat exchangers (kg/s)
-    pub mass_flow: state::MassFlows,
+    pub mass_flow: MassFlow,
 
     /// Engine power (W)
     pub power: Power,
 
     /// Engine pressure (Pa)
-    pub pres: state::Pressure,
+    pub pressure: Pressure,
 
     /// Regenerator approach temperature imbalance (K)
-    pub regen_imbalance: state::RegenImbalance,
+    pub regen_imbalance: f64,
 
     /// Shaft torque (N-m)
     pub shaft_torque: f64,
 
     /// Engine temperatures (K)
-    pub temp: state::Temperatures,
+    pub temperature: Temperature,
 
     /// Time-discretized values over one engine cycle
     pub values: Values,
@@ -42,10 +37,29 @@ pub struct Efficiency {
     pub overall: f64,
 }
 
-/// Total heat input and rejection (W)
-pub struct Heat {
+/// Average heat flow rates (W)
+pub struct HeatFlow {
+    /// Total heat input to the engine
     pub input: f64,
+
+    /// Total heat rejection from the engine
     pub rejection: f64,
+
+    /// Heat flow through the cold heat exchanger
+    pub chx: f64,
+
+    /// Heat flow into the regenerator
+    pub regen: f64,
+
+    /// Heat flow through the hot heat exchanger
+    pub hhx: f64,
+}
+
+/// Average mass flow rates through the heat exchangers (kg/s)
+pub struct MassFlow {
+    pub chx: f64,
+    pub regen: f64,
+    pub hhx: f64,
 }
 
 /// Different characterizations of engine power
@@ -67,6 +81,25 @@ pub struct Power {
     /// Net power is defined as the shaft power less any mechanical parasitics
     /// in the heat exchangers.
     pub net: f64,
+}
+
+/// Engine pressure (Pa)
+pub struct Pressure {
+    pub avg: f64,
+    pub max: f64,
+    pub min: f64,
+    pub t_zero: f64,
+}
+
+/// Engine temperature (K)
+pub struct Temperature {
+    pub sink: f64,
+    pub chx: f64,
+    pub regen_cold: f64,
+    pub regen_avg: f64,
+    pub regen_hot: f64,
+    pub hhx: f64,
+    pub source: f64,
 }
 
 /// Time-discretized values over one engine cycle
