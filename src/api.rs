@@ -18,7 +18,7 @@ pub struct RunResults {
     pub power: Power,
 
     /// Engine pressure (Pa)
-    pub pressure: state::Pressure,
+    pub pres: state::Pressure,
 
     /// Regenerator approach temperature imbalance (K)
     pub regen_imbalance: state::RegenImbalance,
@@ -27,7 +27,7 @@ pub struct RunResults {
     pub shaft_torque: f64,
 
     /// Engine temperatures (K)
-    pub temperature: state::Temperatures,
+    pub temp: state::Temperatures,
 
     /// Time-discretized values over one engine cycle
     pub values: Values,
