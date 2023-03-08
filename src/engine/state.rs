@@ -189,9 +189,9 @@ impl<T: Fluid> State<T> {
         };
 
         // Request approach temperatures
-        let chx_approach = components.chx.approach(&state.chx());
-        let regen_approach = components.regen.approach(&state.regen());
-        let hhx_approach = components.hhx.approach(&state.hhx());
+        let chx_approach = components.chx.initial_approach(&state.chx());
+        let regen_approach = components.regen.initial_approach(&state.regen());
+        let hhx_approach = components.hhx.initial_approach(&state.hhx());
 
         // Use approaches to update temperatures in the initial state
         let temp_chx = temp_sink + chx_approach;

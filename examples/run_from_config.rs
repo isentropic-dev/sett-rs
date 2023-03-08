@@ -50,9 +50,9 @@ fn main() {
             num_timesteps = 30
 
             [conditions]
-            T_cold = 300
-            T_hot = 500
-            P_0 = 10e6
+            temp_sink = 300
+            temp_source = 500
+            pres_zero = 10e6
             "#;
 
     let config = config::Config::builder()
