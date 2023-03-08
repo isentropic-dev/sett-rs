@@ -10,7 +10,7 @@ pub use rhombic_drive::RhombicDrive;
 use serde::Deserialize;
 pub use sinusoidal_drive::SinusoidalDrive;
 
-use crate::{engine::state::Pressure, types::ParasiticPower};
+use crate::{engine::Pressure, types::ParasiticPower};
 
 pub trait WorkingSpaces {
     /// Returns the frequency (Hz) of the engine
