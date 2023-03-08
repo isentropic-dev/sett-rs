@@ -2,6 +2,7 @@ mod fixed_approach;
 mod fixed_conductance;
 mod gpu3;
 mod mod2;
+mod types;
 
 // Export all available regenerator components
 pub use fixed_approach::FixedApproach;

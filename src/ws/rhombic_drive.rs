@@ -5,8 +5,22 @@ use super::{CompVolume, ExpVolume, Parasitics, State, ThermalResistance, Working
 pub struct RhombicDrive {}
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq, Eq)]
-pub struct Config {}
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Config {
+    frequency: f64,
+    V_clearance_c: f64,
+    R_c: f64,
+    W_parasitic_c: f64,
+    V_clearance_e: f64,
+    R_e: f64,
+    W_parasitic_e: f64,
+    Q_parasitic_e: f64,
+    r_crank: f64,
+    L_conn: f64,
+    eccentricity: f64,
+    D_p: f64,
+    D_d: f64,
+}
 
 impl WorkingSpaces for RhombicDrive {
     fn frequency(&self, _state: &State) -> f64 {

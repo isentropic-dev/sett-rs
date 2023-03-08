@@ -7,8 +7,20 @@ use super::{HotHeatExchanger, State};
 pub struct NuclearIsomerMod2 {}
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq, Eq)]
-pub struct Config {}
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Config {
+    R_f: f64,
+    L_f: f64,
+    R_regen: f64,
+    D_outer: f64,
+    D_inner: f64,
+    k_f: f64,
+    roughness: f64,
+    N_total: u32,
+    vol_h: f64,
+    R_ins: f64,
+    W_parasitic: f64,
+}
 
 impl HotHeatExchanger for NuclearIsomerMod2 {
     fn volume(&self) -> f64 {
