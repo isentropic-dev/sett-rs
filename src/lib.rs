@@ -23,11 +23,13 @@ pub fn run_from_config(config: impl Into<Config>) {
             fluid::ModelConfig::IdealGas => fluid::IdealGas::hydrogen(),
             fluid::ModelConfig::RefProp => todo!(),
             fluid::ModelConfig::Fit => todo!(),
+            fluid::ModelConfig::Custom => todo!(),
         },
         fluid::Config::Helium(model) => match model {
             fluid::ModelConfig::IdealGas => fluid::IdealGas::helium(),
             fluid::ModelConfig::RefProp => todo!(),
             fluid::ModelConfig::Fit => todo!(),
+            fluid::ModelConfig::Custom => todo!(),
         },
     };
 

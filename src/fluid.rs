@@ -95,21 +95,27 @@ pub enum Config {
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case", tag = "model")]
 pub enum ModelConfig {
+    Custom,
+    Fit,
     IdealGas,
     RefProp,
-    Fit,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(tag = "model", content = "params")]
 pub enum LegacyConfig {
     Hydrogen,
-    Helium,
     RealGasRefprop(LegacyRefPropParams),
+    IdealGas(LegacyIdealGasParams),
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct LegacyRefPropParams {
+    name: LegacyFluidOption,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct LegacyIdealGasParams {
     name: LegacyFluidOption,
 }
 
@@ -123,11 +129,14 @@ impl LegacyConfig {
     #[must_use]
     pub fn into(self) -> Config {
         match self {
-            LegacyConfig::Hydrogen => Config::Hydrogen(ModelConfig::IdealGas),
-            LegacyConfig::Helium => Config::Helium(ModelConfig::IdealGas),
+            LegacyConfig::Hydrogen => Config::Hydrogen(ModelConfig::Custom),
             LegacyConfig::RealGasRefprop(params) => match params.name {
                 LegacyFluidOption::Hydrogen => Config::Hydrogen(ModelConfig::RefProp),
                 LegacyFluidOption::Helium => Config::Helium(ModelConfig::RefProp),
+            },
+            LegacyConfig::IdealGas(params) => match params.name {
+                LegacyFluidOption::Hydrogen => Config::Hydrogen(ModelConfig::IdealGas),
+                LegacyFluidOption::Helium => Config::Helium(ModelConfig::IdealGas),
             },
         }
     }

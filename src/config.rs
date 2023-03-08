@@ -184,7 +184,10 @@ mod test {
             r#"
             {
                 "fluid": {
-                    "model": "Hydrogen"
+                    "model": "IdealGas",
+                    "params": {
+                        "name": "Hydrogen"
+                    }
                 },
                 "ws": {
                     "model": "Sinusoidal",
@@ -193,11 +196,11 @@ mod test {
                         "phase_angle": 90,
                         "V_swept_c": 1.128e-4,
                         "V_clearance_c": 4.68e-5,
-                        "R_c": "inf",
+                        "R_c": 1e300,
                         "W_parasitic_c": 0,
                         "V_swept_e": 1.128e-4,
                         "V_clearance_e": 1.68e-5,
-                        "R_e": "inf",
+                        "R_e": 1e300,
                         "W_parasitic_e": 0,
                         "Q_parasitic_e": 0
                     } 
@@ -261,7 +264,11 @@ mod test {
                         chx: chx::Config::FixedApproach(Default::default()),
                         hhx: hhx::Config::FixedApproach(Default::default()),
                         regen: regen::Config::FixedApproach(Default::default()),
-                        ws: ws::Config::Sinusoidal(Default::default()),
+                        ws: ws::Config::Sinusoidal(ws::sinusoidal_drive::Config {
+                            R_c: 1e300,
+                            R_e: 1e300,
+                            ..Default::default()
+                        }),
                     },
                 },
                 solver: SolverConfig {

@@ -2,10 +2,12 @@ use sett_rs::Legacy;
 
 fn main() {
     let config_str = r#"
-
-{
+            {
                 "fluid": {
-                    "model": "Hydrogen"
+                    "model": "IdealGas",
+                    "params": {
+                        "name": "Hydrogen"
+                    }
                 },
                 "ws": {
                     "model": "Sinusoidal",
