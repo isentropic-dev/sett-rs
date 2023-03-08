@@ -2,56 +2,71 @@ use crate::engine::state;
 
 /// The results of an engine run
 pub struct RunResults {
-    /// Engine pressure (Pa)
-    pub pres: state::Pressure,
+    /// Engine efficiency (-)
+    pub efficiency: Efficiency,
 
-    /// Engine temperatures (K)
-    pub temp: state::Temperatures,
-
-    /// Average mass flow rates through the heat exchangers (kg/s)
-    pub mass_flow: state::MassFlows,
+    /// Engine heat (W)
+    pub heat: Heat,
 
     /// Average heat flow rates through the heat exhangers (W)
     pub heat_flow: state::HeatFlows,
 
+    /// Average mass flow rates through the heat exchangers (kg/s)
+    pub mass_flow: state::MassFlows,
+
+    /// Engine power (W)
+    pub power: Power,
+
+    /// Engine pressure (Pa)
+    pub pressure: state::Pressure,
+
     /// Regenerator approach temperature imbalance (K)
     pub regen_imbalance: state::RegenImbalance,
 
+    /// Shaft torque (N-m)
+    pub shaft_torque: f64,
+
+    /// Engine temperatures (K)
+    pub temperature: state::Temperatures,
+
     /// Time-discretized values over one engine cycle
     pub values: Values,
+}
 
-    /// Total heat input to the engine (W)
-    pub heat_input: f64,
+/// Different characterizations of engine efficiency
+pub struct Efficiency {
+    /// Mechanical efficiency, which ignores electrical parasitics
+    pub mechanical: f64,
 
-    /// Total heat rejection from the engine (W)
-    pub heat_rejection: f64,
+    /// Overal efficiency, which includes electrical parasitics
+    pub overall: f64,
+}
 
-    /// Indicated power, assuming no hxr pressure drop (W)
-    pub indicated_power_ideal: f64,
+/// Total heat input and rejection (W)
+pub struct Heat {
+    pub input: f64,
+    pub rejection: f64,
+}
 
-    /// Indicated power, accounting for hxr pressure drop (W)
-    pub indicated_power: f64,
+/// Different characterizations of engine power
+pub struct Power {
+    /// Ideal indicated power, which assumes no hxr pressure drop (W)
+    pub ideal_indicated: f64,
+
+    /// Indicated power, which accounts for hxr pressure drop (W)
+    pub indicated: f64,
 
     /// Shaft power (W)
     ///
     /// Shaft power is defined as the indicated power less any mechanical
     /// parasitics in the working spaces.
-    pub shaft_power: f64,
-
-    /// Shaft torque (N-m)
-    pub shaft_torque: f64,
+    pub shaft: f64,
 
     /// Net power (W)
     ///
     /// Net power is defined as the shaft power less any mechanical parasitics
     /// in the heat exchangers.
-    pub net_power: f64,
-
-    /// Engine efficiency, ignoring electrical parasitics (-)
-    pub eta_mechanical: f64,
-
-    /// Engine efficiency, including electrical parasitics (-)
-    pub eta_overall: f64,
+    pub net: f64,
 }
 
 /// Time-discretized values over one engine cycle
