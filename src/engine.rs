@@ -1,5 +1,5 @@
 mod run;
-mod state;
+pub mod state;
 
 use anyhow::{bail, Result};
 use serde::Deserialize;
@@ -12,8 +12,6 @@ use crate::{
     types::{RunInputs, RunSettings},
     ws,
 };
-
-pub use state::Pressure;
 
 /// Represents a Stirling engine running at cyclic steady state
 pub struct Engine<T: Fluid> {

@@ -129,7 +129,7 @@ impl From<Config> for SinusoidalDrive {
 mod tests {
     use approx::{assert_relative_eq, relative_eq};
 
-    use crate::engine::Pressure;
+    use crate::engine::state::Pressure;
 
     use super::*;
 
