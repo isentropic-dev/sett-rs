@@ -125,6 +125,7 @@ impl<T: Fluid> State<T> {
     }
 
     /// Return the `chx::State` that corresponds to this `engine::State`
+    #[allow(dead_code)]
     pub(super) fn chx(&self) -> chx::State {
         chx::State {
             hxr: HeatExchanger {
@@ -140,6 +141,7 @@ impl<T: Fluid> State<T> {
     }
 
     /// Return the `regen::State` that corresponds to this `engine::State`
+    #[allow(dead_code)]
     pub(super) fn regen(&self) -> regen::State {
         regen::State {
             hxr: HeatExchanger {
@@ -154,6 +156,7 @@ impl<T: Fluid> State<T> {
     }
 
     /// Return the `hhx::State` that corresponds to this `engine::State`
+    #[allow(dead_code)]
     pub(super) fn hhx(&self) -> hhx::State {
         hhx::State {
             hxr: HeatExchanger {
@@ -189,9 +192,9 @@ impl<T: Fluid> State<T> {
         };
 
         // Request approach temperatures
-        let chx_approach = components.chx.approach(&state.chx());
-        let regen_approach = components.regen.approach(&state.regen());
-        let hhx_approach = components.hhx.approach(&state.hhx());
+        let chx_approach = components.chx.initial_approach();
+        let regen_approach = components.regen.initial_approach();
+        let hhx_approach = components.hhx.initial_approach();
 
         // Use approaches to update temperatures in the initial state
         let temp_chx = temp_sink + chx_approach;

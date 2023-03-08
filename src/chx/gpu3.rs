@@ -25,6 +25,10 @@ impl ColdHeatExchanger for GPU3 {
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         todo!()
     }
+
+    fn initial_approach(&self) -> f64 {
+        todo!()
+    }
 }
 
 impl From<Config> for GPU3 {

@@ -25,6 +25,10 @@ impl ColdHeatExchanger for Mod2 {
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         todo!()
     }
+
+    fn initial_approach(&self) -> f64 {
+        todo!()
+    }
 }
 
 impl From<Config> for Mod2 {
