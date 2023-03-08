@@ -135,6 +135,7 @@ pub struct LegacyConditionsConfig {
 pub enum Material {
     SS304,
     Multimet,
+    StainlessSteel,
 }
 
 impl OdeTolerance {

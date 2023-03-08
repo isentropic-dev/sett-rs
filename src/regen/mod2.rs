@@ -2,13 +2,28 @@ use serde::Deserialize;
 
 use crate::types::ParasiticPower;
 
-use super::State;
+use super::{
+    types::{FrictionFactorCorrelation, JFactorCorrelation},
+    State,
+};
 
 pub struct Mod2 {}
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, PartialEq, Eq)]
-pub struct Config {}
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct Config {
+    geometry: Geometry,
+    correlationtype: Correlation,
+    correlationf: FrictionFactorCorrelation,
+    correlationj: JFactorCorrelation,
+}
+
+pub struct Geometry {
+    mesh: Mesh,
+    shell: Shell,
+}
+
+pub enum Correlation {}
 
 impl super::Regenerator for Mod2 {
     fn volume(&self) -> f64 {
