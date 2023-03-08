@@ -26,6 +26,10 @@ impl super::Regenerator for GPU3 {
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         todo!()
     }
+
+    fn initial_approach(&self, _state: &State) -> f64 {
+        todo!()
+    }
 }
 
 impl From<Config> for GPU3 {

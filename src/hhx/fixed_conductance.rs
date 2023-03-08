@@ -24,6 +24,10 @@ impl HotHeatExchanger for FixedConductance {
     fn parasitics(&self, _state: &State) -> crate::types::ParasiticPower {
         todo!()
     }
+
+    fn initial_approach(&self, _state: &State) -> f64 {
+        todo!()
+    }
 }
 
 impl From<Config> for FixedConductance {

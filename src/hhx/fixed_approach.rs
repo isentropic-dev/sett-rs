@@ -61,6 +61,10 @@ impl HotHeatExchanger for FixedApproach {
     fn parasitics(&self, _state: &State) -> ParasiticPower {
         self.parasitics
     }
+
+    fn initial_approach(&self, _state: &State) -> f64 {
+        self.approach
+    }
 }
 
 impl Default for FixedApproach {

@@ -37,6 +37,10 @@ pub trait HotHeatExchanger {
 
     /// Returns the parasitic power associated with the heat exchanger
     fn parasitics(&self, state: &State) -> ParasiticPower;
+
+    /// Returns a reasonable initial approach temperature of the heat
+    /// exchanger.
+    fn initial_approach(&self, state: &State) -> f64;
 }
 
 /// Information available to a hhx component for calculating its parameters
