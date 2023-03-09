@@ -4,7 +4,7 @@
 use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
 
-#[allow(non_snake_case)]
+#[no_mangle]
 pub extern "C" fn mexFunction(
     nlhs: c_int,
     _plhs: *mut *mut mxArray,

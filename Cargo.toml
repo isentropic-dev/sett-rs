@@ -1,5 +1,6 @@
 [workspace]
 members = ["sett", "matlab"]
+default-members = ["sett"]
 
 [profile.dev.package.insta]
 opt-level = 3

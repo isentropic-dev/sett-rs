@@ -5,3 +5,7 @@ edition = "2021"
 
 [dependencies]
 sett = { path = "../sett" }
+
+[lib]
+crate-type=["cdylib"]
+doctest = false
