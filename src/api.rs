@@ -1,3 +1,5 @@
+use crate::{fluid::Fluid, performance::PressuresWithDrops, Engine};
+
 /// The results of an engine run
 pub struct RunResults {
     /// Engine efficiency (-)
@@ -158,4 +160,25 @@ pub struct Values {
     ///
     /// Positive values represent heat flow from the heat exchanger to the fluid.
     pub Q_dot_l: Vec<f64>,
+}
+
+impl<T: Fluid> From<Engine<T>> for Values {
+    fn from(engine: Engine<T>) -> Self {
+        let pressures_with_drops = PressuresWithDrops::from(&engine);
+        Self {
+            time: engine.values.time,
+            P: engine.values.P,
+            P_c: pressures_with_drops.P_c.data.into(),
+            P_e: pressures_with_drops.P_e.data.into(),
+            T_c: engine.values.T_c,
+            T_e: engine.values.T_e,
+            m_dot_ck: engine.values.m_dot_ck,
+            m_dot_kr: engine.values.m_dot_kr,
+            m_dot_rl: engine.values.m_dot_rl,
+            m_dot_le: engine.values.m_dot_le,
+            Q_dot_k: engine.values.Q_dot_k,
+            Q_dot_r: engine.values.Q_dot_r,
+            Q_dot_l: engine.values.Q_dot_l,
+        }
+    }
 }

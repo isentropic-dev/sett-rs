@@ -126,7 +126,7 @@ impl<T: Fluid> State<T> {
 
     /// Return the `chx::State` that corresponds to this `engine::State`
     #[allow(dead_code)]
-    pub(super) fn chx(&self) -> chx::State {
+    pub fn chx(&self) -> chx::State {
         chx::State {
             hxr: HeatExchanger {
                 temp: self.temp.chx,
@@ -142,7 +142,7 @@ impl<T: Fluid> State<T> {
 
     /// Return the `regen::State` that corresponds to this `engine::State`
     #[allow(dead_code)]
-    pub(super) fn regen(&self) -> regen::State {
+    pub fn regen(&self) -> regen::State {
         regen::State {
             hxr: HeatExchanger {
                 temp: self.temp.regen.avg,
@@ -157,7 +157,7 @@ impl<T: Fluid> State<T> {
 
     /// Return the `hhx::State` that corresponds to this `engine::State`
     #[allow(dead_code)]
-    pub(super) fn hhx(&self) -> hhx::State {
+    pub fn hhx(&self) -> hhx::State {
         hhx::State {
             hxr: HeatExchanger {
                 temp: self.temp.hhx,

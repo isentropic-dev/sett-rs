@@ -1,5 +1,6 @@
 mod config;
 mod engine;
+mod performance;
 mod state_equations;
 
 pub mod api;
