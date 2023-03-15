@@ -1,6 +1,19 @@
+use itertools::Itertools;
 use na::DVector;
 
-use crate::{fluid::Fluid, Engine};
+use crate::{
+    fluid::Fluid,
+    ws::{self, CompVolume, ExpVolume},
+    Engine,
+};
+
+struct Performance {
+    pressures_with_drops: PressuresWithDrops,
+    power: Powers,
+    heat: Heats,
+    shaft_torque: f64,
+    efficiency: f64,
+}
 
 #[allow(non_snake_case)]
 /// Pressures in the expansion and compressions spaces, accounting for pressure
@@ -10,8 +23,34 @@ pub(crate) struct PressuresWithDrops {
     pub P_e: DVector<f64>,
 }
 
-impl<T: Fluid> From<&Engine<T>> for PressuresWithDrops {
+#[allow(non_snake_case)]
+struct Powers {
+    indicated: f64,
+    indicated_zero_dP: f64,
+    shaft: f64,
+    net: f64,
+}
+
+struct Heats {
+    input: f64,
+    rejected: f64,
+}
+
+impl<T: Fluid> From<&Engine<T>> for Performance {
     fn from(engine: &Engine<T>) -> Self {
+        let pressures_with_drops = PressuresWithDrops::new(engine);
+        Self {
+            pressures_with_drops,
+            power: todo!(),
+            heat: todo!(),
+            shaft_torque: todo!(),
+            efficiency: todo!(),
+        }
+    }
+}
+
+impl PressuresWithDrops {
+    pub(super) fn new<T: Fluid>(engine: &Engine<T>) -> Self {
         let density_func = |temp: f64, pres: f64| -> f64 { engine.state.fluid.dens(temp, pres) };
 
         let cold_hx = Self::calculate_hx_pressure_drop(
@@ -53,9 +92,7 @@ impl<T: Fluid> From<&Engine<T>> for PressuresWithDrops {
             P_e: &pressure - 0.5 * &total,
         }
     }
-}
 
-impl PressuresWithDrops {
     /// Calculate the pressure drop in an HX.
     fn calculate_hx_pressure_drop<F>(
         m_dots: (&[f64], &[f64]),
@@ -75,6 +112,70 @@ impl PressuresWithDrops {
 
         hydraulic_resistance * volumetric_flow_rate
     }
+}
+
+impl Powers {
+    #[allow(non_snake_case)]
+    fn new<T: Fluid>(pressures_with_drops: PressuresWithDrops, engine: &Engine<T>) -> Self {
+        let frequency = engine.components.ws.frequency(&engine.state.ws());
+        let time = DVector::from_row_slice(&engine.values.time);
+        let (dVc_dt, dVe_dt) = Self::dV_dts(
+            &engine.values.time,
+            &engine.components.ws,
+            &engine.state.ws(),
+        );
+
+        // Calculate indicated power.
+        let indicated = frequency
+            * integrate(
+                &time,
+                &(&pressures_with_drops.P_c.component_mul(&dVc_dt)
+                    + &pressures_with_drops.P_e.component_mul(&dVe_dt)),
+            );
+
+        // Calculate indicated power without HX pressure drops.
+        let pressure = DVector::from_row_slice(&engine.values.P);
+        let indicated_zero_dP =
+            frequency * integrate(&time, &pressure.component_mul(&(dVc_dt + dVe_dt)));
+
+        // Calculate shaft power.
+        let ws_parasitics = &engine.components.ws.parasitics(&engine.state.ws());
+        let shaft = indicated - ws_parasitics.comp.mechanical - ws_parasitics.exp.mechanical;
+
+        // Calculate net power.
+        let chx_parasitics = &engine.components.chx.parasitics(&engine.state.chx());
+        let hhx_parasitics = &engine.components.hhx.parasitics(&engine.state.hhx());
+        let net = shaft - chx_parasitics.mechanical - hhx_parasitics.mechanical;
+
+        Self {
+            indicated,
+            indicated_zero_dP,
+            shaft,
+            net,
+        }
+    }
+
+    #[allow(non_snake_case)]
+    fn dV_dts(
+        time: &[f64],
+        ws_component: &Box<dyn ws::WorkingSpaces>,
+        ws_state: &ws::State,
+    ) -> (DVector<f64>, DVector<f64>) {
+        let volumes_func = ws_component.volumes(ws_state);
+        let (comp_volumes, exp_volumes): &(Vec<CompVolume>, Vec<ExpVolume>) =
+            &time.iter().map(|t: &f64| volumes_func(*t)).unzip();
+        let dVc_dt = DVector::from_vec(comp_volumes.into_iter().map(|cv| cv.deriv).collect());
+        let dVe_dt = DVector::from_vec(exp_volumes.into_iter().map(|ev| ev.deriv).collect());
+        (dVc_dt, dVe_dt)
+    }
+}
+
+fn integrate(x: &DVector<f64>, y: &DVector<f64>) -> f64 {
+    let xs = x.iter().tuple_windows();
+    let ys = y.iter().tuple_windows();
+    xs.zip(ys)
+        .map(|((x0, x1), (y0, y1))| (y1 + y0) * (x1 - x0) * 0.5)
+        .sum()
 }
 
 #[cfg(test)]

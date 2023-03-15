@@ -120,7 +120,7 @@ impl<T: Fluid> State<T> {
     }
 
     /// Return the `ws::State` that corresponds to this `engine::State`
-    pub(super) fn ws(&self) -> ws::State {
+    pub fn ws(&self) -> ws::State {
         ws::State { pres: self.pres }
     }
 

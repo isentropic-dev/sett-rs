@@ -164,7 +164,7 @@ pub struct Values {
 
 impl<T: Fluid> From<Engine<T>> for Values {
     fn from(engine: Engine<T>) -> Self {
-        let pressures_with_drops = PressuresWithDrops::from(&engine);
+        let pressures_with_drops = PressuresWithDrops::new(&engine);
         Self {
             time: engine.values.time,
             P: engine.values.P,
