@@ -52,5 +52,5 @@ pub fn run_from_config(config: impl Into<Config>) {
 
     let results = RunResults::from(engine);
 
-    println!("results: {:?}", results);
+    println!("Results: {results:?}");
 }

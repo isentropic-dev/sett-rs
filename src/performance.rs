@@ -130,7 +130,7 @@ impl Powers {
         let time = DVector::from_row_slice(&engine.values.time);
         let (dVc_dt, dVe_dt) = Self::dV_dts(
             &engine.values.time,
-            &engine.components.ws,
+            &*engine.components.ws,
             &engine.state.ws(),
         );
 
@@ -152,9 +152,9 @@ impl Powers {
         let shaft = indicated - ws_parasitics.comp.mechanical - ws_parasitics.exp.mechanical;
 
         // Calculate net power.
-        let chx_parasitics = &engine.components.chx.parasitics(&engine.state.chx());
-        let hhx_parasitics = &engine.components.hhx.parasitics(&engine.state.hhx());
-        let net = shaft - chx_parasitics.mechanical - hhx_parasitics.mechanical;
+        let cold_hx_parasitics = &engine.components.chx.parasitics(&engine.state.chx());
+        let hot_hx_parasitics = &engine.components.hhx.parasitics(&engine.state.hhx());
+        let net = shaft - cold_hx_parasitics.mechanical - hot_hx_parasitics.mechanical;
 
         Self {
             indicated,
@@ -167,14 +167,14 @@ impl Powers {
     #[allow(non_snake_case)]
     fn dV_dts(
         time: &[f64],
-        ws_component: &Box<dyn ws::WorkingSpaces>,
+        ws_component: &dyn ws::WorkingSpaces,
         ws_state: &ws::State,
     ) -> (DVector<f64>, DVector<f64>) {
         let volumes_func = ws_component.volumes(ws_state);
         let (comp_volumes, exp_volumes): &(Vec<CompVolume>, Vec<ExpVolume>) =
             &time.iter().map(|t: &f64| volumes_func(*t)).unzip();
-        let dVc_dt = DVector::from_vec(comp_volumes.into_iter().map(|cv| cv.deriv).collect());
-        let dVe_dt = DVector::from_vec(exp_volumes.into_iter().map(|ev| ev.deriv).collect());
+        let dVc_dt = DVector::from_vec(comp_volumes.iter().map(|cv| cv.deriv).collect());
+        let dVe_dt = DVector::from_vec(exp_volumes.iter().map(|ev| ev.deriv).collect());
         (dVc_dt, dVe_dt)
     }
 }
