@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use itertools::Itertools;
 use na::DVector;
 
@@ -38,13 +40,20 @@ struct Heats {
 
 impl<T: Fluid> From<&Engine<T>> for Performance {
     fn from(engine: &Engine<T>) -> Self {
+        let frequency = engine.components.ws.frequency(&engine.state.ws());
+
         let pressures_with_drops = PressuresWithDrops::new(engine);
+        let power = Powers::new(&pressures_with_drops, engine);
+        let heat = Heats::new(&power, engine);
+        let shaft_torque = power.shaft / (2. * PI * frequency);
+        let efficiency = power.net / heat.input;
+
         Self {
             pressures_with_drops,
-            power: todo!(),
-            heat: todo!(),
-            shaft_torque: todo!(),
-            efficiency: todo!(),
+            power,
+            heat,
+            shaft_torque,
+            efficiency,
         }
     }
 }
@@ -116,7 +125,7 @@ impl PressuresWithDrops {
 
 impl Powers {
     #[allow(non_snake_case)]
-    fn new<T: Fluid>(pressures_with_drops: PressuresWithDrops, engine: &Engine<T>) -> Self {
+    fn new<T: Fluid>(pressures_with_drops: &PressuresWithDrops, engine: &Engine<T>) -> Self {
         let frequency = engine.components.ws.frequency(&engine.state.ws());
         let time = DVector::from_row_slice(&engine.values.time);
         let (dVc_dt, dVe_dt) = Self::dV_dts(
@@ -167,6 +176,61 @@ impl Powers {
         let dVc_dt = DVector::from_vec(comp_volumes.into_iter().map(|cv| cv.deriv).collect());
         let dVe_dt = DVector::from_vec(exp_volumes.into_iter().map(|ev| ev.deriv).collect());
         (dVc_dt, dVe_dt)
+    }
+}
+
+impl Heats {
+    #[allow(non_snake_case)]
+    fn new<T: Fluid>(power: &Powers, engine: &Engine<T>) -> Self {
+        let frequency = engine.components.ws.frequency(&engine.state.ws());
+        let time = DVector::from_row_slice(&engine.values.time);
+
+        let hhx_parasitics = engine.components.hhx.parasitics(&engine.state.hhx());
+        let regen_parasitics = engine.components.regen.parasitics(&engine.state.regen());
+        let ws_parasitics = engine.components.ws.parasitics(&engine.state.ws());
+
+        let ws_thermal_resistances = engine.components.ws.thermal_resistance(&engine.state.ws());
+
+        // Heat from HHX to the expansion space .
+        let T_e = &DVector::from_row_slice(&engine.values.T_e);
+        let Q_dot_e = frequency
+            * integrate(
+                &time,
+                &((T_e - DVector::from_element(T_e.nrows(), engine.state.temp.hhx))
+                    / ws_thermal_resistances.exp),
+            );
+
+        // Heat input to the HHX.
+        let Q_dot_l =
+            frequency * integrate(&time, &DVector::from_row_slice(&engine.values.Q_dot_l));
+
+        // Heat from compression space to CHX.
+        let T_c = &DVector::from_row_slice(&engine.values.T_c);
+        let Q_dot_c = frequency
+            * integrate(
+                &time,
+                &((T_c - DVector::from_element(T_c.nrows(), engine.state.temp.chx))
+                    / ws_thermal_resistances.comp),
+            );
+
+        // Heat rejected from the CHX.
+        let Q_dot_k =
+            frequency * integrate(&time, &DVector::from_row_slice(&engine.values.Q_dot_k));
+
+        // Heat rejected from pressure drops.
+        let Q_dot_dP = power.indicated_zero_dP - power.indicated;
+
+        // External parasitic heat losses.
+        let Q_dot_loss_external =
+            hhx_parasitics.thermal + regen_parasitics.thermal + ws_parasitics.exp.thermal;
+
+        // Internal parasitic heat losses.
+        let Q_dot_loss_internal = ws_parasitics.comp.mechanical + ws_parasitics.exp.mechanical;
+
+        Self {
+            input: Q_dot_l - Q_dot_e + Q_dot_loss_external,
+            rejected: Q_dot_c + Q_dot_k + Q_dot_dP + Q_dot_loss_internal + Q_dot_loss_external,
+        }
     }
 }
 
