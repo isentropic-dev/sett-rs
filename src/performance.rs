@@ -138,8 +138,8 @@ impl Powers {
         let indicated = frequency
             * integrate(
                 &time,
-                &(&pressures_with_drops.P_c.component_mul(&dVc_dt)
-                    + &pressures_with_drops.P_e.component_mul(&dVe_dt)),
+                &(pressures_with_drops.P_c.component_mul(&dVc_dt)
+                    + pressures_with_drops.P_e.component_mul(&dVe_dt)),
             );
 
         // Calculate indicated power without HX pressure drops.
