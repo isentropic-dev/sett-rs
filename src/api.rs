@@ -1,4 +1,4 @@
-use crate::{fluid::Fluid, performance::PressuresWithDrops, Engine};
+use crate::{fluid::Fluid, performance::Performance, Engine};
 
 /// The results of an engine run
 pub struct RunResults {
@@ -162,23 +162,66 @@ pub struct Values {
     pub Q_dot_l: Vec<f64>,
 }
 
-impl<T: Fluid> From<Engine<T>> for Values {
+impl<T: Fluid> From<Engine<T>> for RunResults {
     fn from(engine: Engine<T>) -> Self {
-        let pressures_with_drops = PressuresWithDrops::new(&engine);
+        let performance = Performance::from(&engine);
+
         Self {
-            time: engine.values.time,
-            P: engine.values.P,
-            P_c: pressures_with_drops.P_c.data.into(),
-            P_e: pressures_with_drops.P_e.data.into(),
-            T_c: engine.values.T_c,
-            T_e: engine.values.T_e,
-            m_dot_ck: engine.values.m_dot_ck,
-            m_dot_kr: engine.values.m_dot_kr,
-            m_dot_rl: engine.values.m_dot_rl,
-            m_dot_le: engine.values.m_dot_le,
-            Q_dot_k: engine.values.Q_dot_k,
-            Q_dot_r: engine.values.Q_dot_r,
-            Q_dot_l: engine.values.Q_dot_l,
+            efficiency: Efficiency {
+                mechanical: performance.efficiency,
+                // TODO: How do we calculate this?
+                overall: 0.,
+            },
+            heat_flow: HeatFlow {
+                input: performance.heat.input,
+                rejection: performance.heat.rejected,
+                chx: engine.state.heat_flow.chx,
+                regen: engine.state.heat_flow.regen,
+                hhx: engine.state.heat_flow.hhx,
+            },
+            mass_flow: MassFlow {
+                chx: engine.state.mass_flow.chx,
+                regen: engine.state.mass_flow.regen,
+                hhx: engine.state.mass_flow.hhx,
+            },
+            power: Power {
+                ideal_indicated: performance.power.indicated_zero_dP,
+                indicated: performance.power.indicated,
+                shaft: performance.power.shaft,
+                net: performance.power.net,
+            },
+            pressure: Pressure {
+                avg: engine.state.pres.avg,
+                max: engine.state.pres.max,
+                min: engine.state.pres.min,
+                t_zero: engine.state.pres.t_zero,
+            },
+            regen_imbalance: engine.state.regen_imbalance.0,
+            shaft_torque: performance.shaft_torque,
+            temperature: Temperature {
+                sink: engine.state.temp.sink,
+                chx: engine.state.temp.chx,
+                regen_cold: engine.state.temp.regen.cold,
+                regen_avg: engine.state.temp.regen.avg,
+                regen_hot: engine.state.temp.regen.hot,
+                hhx: engine.state.temp.hhx,
+                source: engine.state.temp.source,
+            },
+            values: Values {
+                time: engine.values.time,
+                P: engine.values.P,
+                P_c: performance.pressures_with_drops.P_c.data.into(),
+                P_e: performance.pressures_with_drops.P_e.data.into(),
+                T_c: engine.values.T_c,
+                T_e: engine.values.T_e,
+                m_dot_ck: engine.values.m_dot_ck,
+                m_dot_kr: engine.values.m_dot_kr,
+                m_dot_rl: engine.values.m_dot_rl,
+                m_dot_le: engine.values.m_dot_le,
+                Q_dot_k: engine.values.Q_dot_k,
+                Q_dot_r: engine.values.Q_dot_r,
+                Q_dot_l: engine.values.Q_dot_l,
+            },
         }
     }
 }

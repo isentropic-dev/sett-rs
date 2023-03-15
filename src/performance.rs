@@ -9,33 +9,33 @@ use crate::{
     Engine,
 };
 
-struct Performance {
-    pressures_with_drops: PressuresWithDrops,
-    power: Powers,
-    heat: Heats,
-    shaft_torque: f64,
-    efficiency: f64,
+pub(super) struct Performance {
+    pub pressures_with_drops: PressuresWithDrops,
+    pub power: Powers,
+    pub heat: Heats,
+    pub shaft_torque: f64,
+    pub efficiency: f64,
 }
 
 #[allow(non_snake_case)]
 /// Pressures in the expansion and compressions spaces, accounting for pressure
 /// drops in the HXs.
-pub(crate) struct PressuresWithDrops {
+pub(super) struct PressuresWithDrops {
     pub P_c: DVector<f64>,
     pub P_e: DVector<f64>,
 }
 
 #[allow(non_snake_case)]
-struct Powers {
-    indicated: f64,
-    indicated_zero_dP: f64,
-    shaft: f64,
-    net: f64,
+pub(super) struct Powers {
+    pub indicated: f64,
+    pub indicated_zero_dP: f64,
+    pub shaft: f64,
+    pub net: f64,
 }
 
-struct Heats {
-    input: f64,
-    rejected: f64,
+pub(super) struct Heats {
+    pub input: f64,
+    pub rejected: f64,
 }
 
 impl<T: Fluid> From<&Engine<T>> for Performance {

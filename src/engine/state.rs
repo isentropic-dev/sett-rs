@@ -84,7 +84,7 @@ pub struct HeatFlows {
 ///    `T_r_hot = T_l - approach`
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub struct RegenImbalance(f64);
+pub struct RegenImbalance(pub f64);
 
 /// Time-discretized state values within a Stirling engine
 #[allow(non_snake_case)]
