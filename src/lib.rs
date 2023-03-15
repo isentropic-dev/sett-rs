@@ -11,6 +11,7 @@ pub mod regen;
 pub mod types;
 pub mod ws;
 
+use crate::api::RunResults;
 pub use crate::config::{Config, Legacy};
 pub use engine::{Components, Engine};
 pub use state_equations::{LuSolver, QrSolver, SvdDefaultSolver};
@@ -48,4 +49,8 @@ pub fn run_from_config(config: impl Into<Config>) {
     println!("P:     {:?}", engine.values.P);
     println!("T_c:   {:?}", engine.values.T_c);
     println!("T_e:   {:?}", engine.values.T_e);
+
+    let results = RunResults::from(engine);
+
+    println!("results: {:?}", results);
 }

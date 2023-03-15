@@ -1,6 +1,7 @@
 use crate::{fluid::Fluid, performance::Performance, Engine};
 
 /// The results of an engine run
+#[derive(Debug)]
 pub struct RunResults {
     /// Engine efficiency (-)
     pub efficiency: Efficiency,
@@ -31,6 +32,7 @@ pub struct RunResults {
 }
 
 /// Different characterizations of engine efficiency
+#[derive(Debug)]
 pub struct Efficiency {
     /// Mechanical efficiency, which ignores electrical parasitics
     pub mechanical: f64,
@@ -40,6 +42,7 @@ pub struct Efficiency {
 }
 
 /// Average heat flow rates (W)
+#[derive(Debug)]
 pub struct HeatFlow {
     /// Total heat input to the engine
     pub input: f64,
@@ -58,6 +61,7 @@ pub struct HeatFlow {
 }
 
 /// Average mass flow rates through the heat exchangers (kg/s)
+#[derive(Debug)]
 pub struct MassFlow {
     pub chx: f64,
     pub regen: f64,
@@ -65,6 +69,7 @@ pub struct MassFlow {
 }
 
 /// Different characterizations of engine power
+#[derive(Debug)]
 pub struct Power {
     /// Ideal indicated power, which assumes no hxr pressure drop (W)
     pub ideal_indicated: f64,
@@ -86,6 +91,7 @@ pub struct Power {
 }
 
 /// Engine pressure (Pa)
+#[derive(Debug)]
 pub struct Pressure {
     pub avg: f64,
     pub max: f64,
@@ -94,6 +100,7 @@ pub struct Pressure {
 }
 
 /// Engine temperature (K)
+#[derive(Debug)]
 pub struct Temperature {
     pub sink: f64,
     pub chx: f64,
@@ -115,6 +122,7 @@ pub struct Temperature {
 /// (i.e., positive flow is comp -> chx -> regen -> hhx -> exp).  Negative
 /// values represent mass flow in the opposite direction.
 #[allow(non_snake_case)]
+#[derive(Debug)]
 pub struct Values {
     /// Time in the cycle for each discrete point (s)
     pub time: Vec<f64>,
