@@ -103,6 +103,12 @@ pub struct Values {
     pub Q_dot_l: Vec<f64>,
 }
 
+struct Approach {
+    chx: f64,
+    regen: f64,
+    hhx: f64,
+}
+
 impl<T: Fluid> State<T> {
     /// Return `self` updated from new `state_equations::Values`
     ///
@@ -140,21 +146,18 @@ impl<T: Fluid> State<T> {
             regen_imbalance,
         };
 
-        // Request approach temperatures using the new state
-        let chx_approach = components.chx.approach(&new_state.chx());
-        let regen_approach = components.regen.approach(&new_state.regen());
-        let hhx_approach = components.hhx.approach(&new_state.hhx());
-
-        // Use approaches to calculate new temperatures
-        let temp_chx = self.temp.sink + chx_approach;
-        let temp_hhx = self.temp.source - hhx_approach;
-        let temp_regen = regen_imbalance.regen_temp(temp_chx, temp_hhx, regen_approach);
-        let new_temp = Temperatures {
-            chx: temp_chx,
-            regen: temp_regen,
-            hhx: temp_hhx,
-            ..self.temp
+        // Calculate engine temperatures from updated approach temperatures
+        let approach = Approach {
+            chx: components.chx.approach(&new_state.chx()),
+            regen: components.regen.approach(&new_state.regen()),
+            hhx: components.hhx.approach(&new_state.hhx()),
         };
+        let new_temp = Temperatures::from_approach(
+            self.temp.sink,
+            self.temp.source,
+            &approach,
+            regen_imbalance,
+        );
 
         // Check for temperature convergence
         // TODO: Do we want to check `pres`, `mass_flow`, and `heat_flow` for convergence as well?
@@ -234,32 +237,24 @@ impl<T: Fluid> State<T> {
             temp_source,
         } = inputs;
 
-        // Make some initial state in order to get approach temperatures from components
+        // Request initial approach temperatures
+        let approach = Approach {
+            chx: components.chx.initial_approach(),
+            regen: components.regen.initial_approach(),
+            hhx: components.hhx.initial_approach(),
+        };
+
+        // Assume regenerator is balanced
         let regen_imbalance = RegenImbalance::default();
-        let mut state = Self {
+
+        Self {
             fluid,
             pres: Pressure::constant(pres_zero),
-            temp: Temperatures::from_env(temp_sink, temp_source),
+            temp: Temperatures::from_approach(temp_sink, temp_source, &approach, regen_imbalance),
             mass_flow: MassFlows::constant(0.),
             heat_flow: HeatFlows::constant(0.),
             regen_imbalance,
-        };
-
-        // Request approach temperatures
-        let chx_approach = components.chx.initial_approach();
-        let regen_approach = components.regen.initial_approach();
-        let hhx_approach = components.hhx.initial_approach();
-
-        // Use approaches to update temperatures in the initial state
-        let temp_chx = temp_sink + chx_approach;
-        let temp_hhx = temp_source - hhx_approach;
-        let temp_regen = regen_imbalance.regen_temp(temp_chx, temp_hhx, regen_approach);
-
-        state.temp.chx = temp_chx;
-        state.temp.regen = temp_regen;
-        state.temp.hhx = temp_hhx;
-
-        state
+        }
     }
 }
 
@@ -300,6 +295,26 @@ impl Pressure {
 }
 
 impl Temperatures {
+    /// Construct `Temperatures` from approach temperatures
+    #[allow(clippy::similar_names)]
+    fn from_approach(
+        sink: f64,
+        source: f64,
+        approach: &Approach,
+        regen_imbalance: RegenImbalance,
+    ) -> Self {
+        let chx = sink + approach.chx;
+        let hhx = source - approach.hhx;
+        let regen = regen_imbalance.regen_temp(chx, hhx, approach.regen);
+        Self {
+            sink,
+            chx,
+            regen,
+            hhx,
+            source,
+        }
+    }
+
     /// Construct `Temperatures` from sink (`T_cold`) and source (`T_hot`) temperatures
     #[allow(clippy::similar_names)]
     pub fn from_env(sink: f64, source: f64) -> Self {
