@@ -109,14 +109,68 @@ impl<T: Fluid> State<T> {
     /// The updated `State` is returned as `Ok(self)`.  If the provided
     /// `values` do not change the `State` within `tol`, then the original
     /// `State` is returned as `Err(self)`.
-    #[allow(clippy::result_large_err)]
+    #[allow(clippy::result_large_err, clippy::similar_names)]
     pub fn update(
         self,
-        _components: &Components,
-        _values: &Values,
-        _tol: ConvergenceTolerance,
+        components: &Components,
+        values: &Values,
+        tol: ConvergenceTolerance,
     ) -> Result<Self, Self> {
-        Err(self) // TODO: for now we assume state is always converged
+        // Calculate actual pressure
+        let pres = Pressure::from_values(values);
+
+        // Calculate actual mass flow rates
+        let mass_flow = MassFlows::from_values(values);
+
+        // Calculate actual heat flow rates
+        let ws_state = self.ws();
+        let thermal_res = components.ws.thermal_resistance(&ws_state);
+        let heat_flow = HeatFlows::from_values(values, self.temp.chx, self.temp.hhx, thermal_res);
+
+        // TODO: Determine a better regen_imbalance using an energy balance and math
+        let regen_imbalance = self.regen_imbalance;
+
+        // Generate the new state we will provide to the components
+        let new_state = State {
+            fluid: self.fluid,
+            temp: self.temp,
+            pres,
+            mass_flow,
+            heat_flow,
+            regen_imbalance,
+        };
+
+        // Request approach temperatures using the new state
+        let chx_approach = components.chx.approach(&new_state.chx());
+        let regen_approach = components.regen.approach(&new_state.regen());
+        let hhx_approach = components.hhx.approach(&new_state.hhx());
+
+        // Use approaches to calculate new temperatures
+        let temp_chx = self.temp.sink + chx_approach;
+        let temp_hhx = self.temp.source - hhx_approach;
+        let temp_regen = regen_imbalance.regen_temp(temp_chx, temp_hhx, regen_approach);
+        let new_temp = Temperatures {
+            chx: temp_chx,
+            regen: temp_regen,
+            hhx: temp_hhx,
+            ..self.temp
+        };
+
+        // Check for temperature convergence
+        // TODO: Do we want to check `pres`, `mass_flow`, and `heat_flow` for convergence as well?
+        if self.temp.is_converged(new_temp, tol) {
+            // Temperatures are converged and we return `self` unchanged
+            Err(Self {
+                fluid: new_state.fluid,
+                ..self
+            })
+        } else {
+            // Approach temperatures have changed and we return the new `State`
+            Ok(Self {
+                temp: new_temp,
+                ..new_state
+            })
+        }
     }
 
     /// Return the `ws::State` that corresponds to this `engine::State`
@@ -264,6 +318,22 @@ impl Temperatures {
             hhx,
             source,
         }
+    }
+
+    /// Check for convergence between `self` and `other`
+    fn is_converged(&self, other: Self, tol: ConvergenceTolerance) -> bool {
+        tol.is_converged(self.chx, other.chx)
+            && tol.is_converged(self.hhx, other.hhx)
+            && self.regen.is_converged(other.regen, tol)
+    }
+}
+
+impl RegenTemp {
+    /// Check for convergence between `self` and `other`
+    fn is_converged(&self, other: Self, tol: ConvergenceTolerance) -> bool {
+        tol.is_converged(self.cold, other.cold)
+            && tol.is_converged(self.avg, other.avg)
+            && tol.is_converged(self.hot, other.hot)
     }
 }
 
