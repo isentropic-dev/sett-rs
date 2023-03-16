@@ -1,5 +1,5 @@
 mod run;
-mod state;
+pub(crate) mod state;
 
 use anyhow::{bail, Result};
 use serde::Deserialize;

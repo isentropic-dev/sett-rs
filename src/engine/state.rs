@@ -84,7 +84,7 @@ pub struct HeatFlows {
 ///    `T_r_hot = T_l - approach`
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub struct RegenImbalance(f64);
+pub struct RegenImbalance(pub f64);
 
 /// Time-discretized state values within a Stirling engine
 #[allow(non_snake_case)]
@@ -120,13 +120,13 @@ impl<T: Fluid> State<T> {
     }
 
     /// Return the `ws::State` that corresponds to this `engine::State`
-    pub(super) fn ws(&self) -> ws::State {
+    pub fn ws(&self) -> ws::State {
         ws::State { pres: self.pres }
     }
 
     /// Return the `chx::State` that corresponds to this `engine::State`
     #[allow(dead_code)]
-    pub(super) fn chx(&self) -> chx::State {
+    pub fn chx(&self) -> chx::State {
         chx::State {
             hxr: HeatExchanger {
                 temp: self.temp.chx,
@@ -142,7 +142,7 @@ impl<T: Fluid> State<T> {
 
     /// Return the `regen::State` that corresponds to this `engine::State`
     #[allow(dead_code)]
-    pub(super) fn regen(&self) -> regen::State {
+    pub fn regen(&self) -> regen::State {
         regen::State {
             hxr: HeatExchanger {
                 temp: self.temp.regen.avg,
@@ -157,7 +157,7 @@ impl<T: Fluid> State<T> {
 
     /// Return the `hhx::State` that corresponds to this `engine::State`
     #[allow(dead_code)]
-    pub(super) fn hhx(&self) -> hhx::State {
+    pub fn hhx(&self) -> hhx::State {
         hhx::State {
             hxr: HeatExchanger {
                 temp: self.temp.hhx,
