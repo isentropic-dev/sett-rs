@@ -103,6 +103,7 @@ pub struct Values {
     pub Q_dot_l: Vec<f64>,
 }
 
+#[derive(Default, Clone, Copy)]
 struct Approach {
     chx: f64,
     regen: f64,
@@ -155,7 +156,7 @@ impl<T: Fluid> State<T> {
         let new_temp = Temperatures::from_approach(
             self.temp.sink,
             self.temp.source,
-            &approach,
+            approach,
             regen_imbalance,
         );
 
@@ -250,7 +251,7 @@ impl<T: Fluid> State<T> {
         Self {
             fluid,
             pres: Pressure::constant(pres_zero),
-            temp: Temperatures::from_approach(temp_sink, temp_source, &approach, regen_imbalance),
+            temp: Temperatures::from_approach(temp_sink, temp_source, approach, regen_imbalance),
             mass_flow: MassFlows::constant(0.),
             heat_flow: HeatFlows::constant(0.),
             regen_imbalance,
@@ -300,32 +301,12 @@ impl Temperatures {
     fn from_approach(
         sink: f64,
         source: f64,
-        approach: &Approach,
+        approach: Approach,
         regen_imbalance: RegenImbalance,
     ) -> Self {
         let chx = sink + approach.chx;
         let hhx = source - approach.hhx;
         let regen = regen_imbalance.regen_temp(chx, hhx, approach.regen);
-        Self {
-            sink,
-            chx,
-            regen,
-            hhx,
-            source,
-        }
-    }
-
-    /// Construct `Temperatures` from sink (`T_cold`) and source (`T_hot`) temperatures
-    #[allow(clippy::similar_names)]
-    pub fn from_env(sink: f64, source: f64) -> Self {
-        let chx = sink;
-        let hhx = source;
-        let regen_avg = (sink + source) * 0.5;
-        let regen = RegenTemp {
-            cold: (chx + regen_avg) * 0.5,
-            avg: regen_avg,
-            hot: (hhx + regen_avg) * 0.5,
-        };
         Self {
             sink,
             chx,
@@ -563,7 +544,12 @@ mod tests {
         let fluid = IdealGas::hydrogen();
         let _state = State {
             fluid,
-            temp: Temperatures::from_env(300.0, 600.0),
+            temp: Temperatures::from_approach(
+                300.0,
+                600.0,
+                Approach::default(),
+                RegenImbalance::default(),
+            ),
             pres: Pressure::constant(10e6),
             mass_flow: MassFlows::constant(1.0),
             heat_flow: HeatFlows::constant(1.0),
