@@ -34,6 +34,7 @@ pub struct Config {
 
 #[allow(non_snake_case)]
 impl FixedConductance {
+    #[must_use]
     pub fn new(volume: f64, R_hyd: f64, UA: f64, parasitics: ParasiticPower) -> Self {
         Self {
             R_hyd,
