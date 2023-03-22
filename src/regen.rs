@@ -45,6 +45,8 @@ pub trait Regenerator {
 /// Information available to a regenerator component for calculating its parameters
 pub struct State {
     pub hxr: HeatExchanger,
+    pub temp_chx: f64,
+    pub temp_hhx: f64,
 }
 
 #[allow(non_snake_case)]
