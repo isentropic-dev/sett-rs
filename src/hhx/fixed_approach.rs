@@ -4,6 +4,12 @@ use crate::types::ParasiticPower;
 
 use super::{HotHeatExchanger, State};
 
+const DEFAULT_R_HYD: f64 = 0.;
+const DEFAULT_VOL: f64 = 1.0e-4;
+const DEFAULT_APPROACH: f64 = 100.;
+const DEFAULT_W_PARASITIC: f64 = 0.;
+const DEFAULT_Q_PARASITIC: f64 = 0.;
+
 #[allow(non_snake_case)]
 /// A fixed approach hot heat exchanger.
 pub struct FixedApproach {
@@ -70,9 +76,9 @@ impl HotHeatExchanger for FixedApproach {
 impl Default for FixedApproach {
     fn default() -> Self {
         Self {
-            R_hyd: 0.,
-            volume: 1.0e-4_f64,
-            approach: 100.,
+            R_hyd: DEFAULT_R_HYD,
+            volume: DEFAULT_VOL,
+            approach: DEFAULT_APPROACH,
             parasitics: ParasiticPower::default(),
         }
     }
@@ -81,11 +87,11 @@ impl Default for FixedApproach {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            vol: 1e-4_f64,
-            DT: 100.,
-            R_hyd: 0.,
-            W_parasitic: 0.,
-            Q_parasitic: 0.,
+            vol: DEFAULT_VOL,
+            DT: DEFAULT_APPROACH,
+            R_hyd: DEFAULT_R_HYD,
+            W_parasitic: DEFAULT_W_PARASITIC,
+            Q_parasitic: DEFAULT_Q_PARASITIC,
         }
     }
 }
