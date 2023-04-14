@@ -208,6 +208,8 @@ impl<T: Fluid> State<T> {
                 m_dot: self.mass_flow.regen,
                 Q_dot: self.heat_flow.regen,
             },
+            temp_chx: self.temp.chx,
+            temp_hhx: self.temp.hhx,
         }
     }
 

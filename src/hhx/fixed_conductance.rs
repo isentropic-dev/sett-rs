@@ -23,7 +23,7 @@ pub struct FixedConductance {
 
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, PartialEq)]
-/// Configuration for a fixed conductance cold heat exchanger.
+/// Configuration for a fixed conductance hot heat exchanger.
 pub struct Config {
     vol: f64,
     UA: f64,
