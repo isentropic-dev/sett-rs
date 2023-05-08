@@ -1,4 +1,48 @@
-use crate::{fluid::Fluid, performance::Performance, Engine};
+use crate::{
+    config::Config,
+    fluid::{self, Fluid},
+    performance::Performance,
+    state_equations::LuSolver,
+    types::RunError,
+    Engine,
+};
+
+/// The main interface for running an engine
+///
+/// # Errors
+///
+/// Will return `Err` if the inner loop or outer loop convergence fails.
+///
+/// # Panics
+///
+/// Will panic if an unsupported fluid model is provided.  When <https://
+/// github.com/ isentropic-dev/sett-rs/issues/63> is resolved, the function
+/// will no longer panic.
+pub fn run_engine(config: Config) -> Result<RunResults, RunError> {
+    let fluid = match config.engine.fluid {
+        fluid::Config::Hydrogen(model) => match model {
+            fluid::ModelConfig::IdealGas => fluid::IdealGas::hydrogen(),
+            fluid::ModelConfig::RefProp => todo!(),
+            fluid::ModelConfig::Fit => todo!(),
+            fluid::ModelConfig::Custom => todo!(),
+        },
+        fluid::Config::Helium(model) => match model {
+            fluid::ModelConfig::IdealGas => fluid::IdealGas::helium(),
+            fluid::ModelConfig::RefProp => todo!(),
+            fluid::ModelConfig::Fit => todo!(),
+            fluid::ModelConfig::Custom => todo!(),
+        },
+    };
+
+    let engine = Engine::run::<LuSolver>(
+        config.engine.components.into(),
+        fluid,
+        config.conditions.into(),
+        config.solver.into(),
+    )?;
+
+    Ok(RunResults::from(engine))
+}
 
 /// The results of an engine run
 #[derive(Debug)]
