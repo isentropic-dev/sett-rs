@@ -1,7 +1,6 @@
 mod run;
 pub(crate) mod state;
 
-use anyhow::{bail, Result};
 use serde::Deserialize;
 
 use crate::{
@@ -9,7 +8,7 @@ use crate::{
     fluid::{self, Fluid},
     hhx, regen,
     state_equations::{Cycle, MatrixDecomposition, SteadyStateInputs},
-    types::{RunInputs, RunSettings},
+    types::{RunError, RunInputs, RunSettings},
     ws,
 };
 
@@ -37,25 +36,27 @@ impl<T: Fluid> Engine<T> {
     ///
     /// # Errors
     ///
-    /// Will return `Err` if a converged engine cannot be created.
+    /// Will return `Err<RunError>` if a converged engine cannot be created.
     pub fn run<U: MatrixDecomposition>(
         components: Components,
         fluid: T,
         inputs: RunInputs,
         settings: RunSettings,
-    ) -> Result<Self> {
+    ) -> Result<Self, RunError> {
         let mut state = state::State::new_hint(&components, fluid, inputs);
         for _ in 0..settings.max_iters.outer {
             let run: run::Run<T, U> = run::Run::new(&components, &state);
-            let values = run.find_steady_state(SteadyStateInputs {
-                pres_zero: state.pres.t_zero,
-                temp_comp_hint: state.temp.chx,
-                temp_exp_hint: state.temp.hhx,
-                num_points: settings.resolution,
-                ode_tol: settings.ode_tol,
-                conv_tol: settings.loop_tol.inner,
-                max_iters: settings.max_iters.inner,
-            })?;
+            let values = run
+                .find_steady_state(SteadyStateInputs {
+                    pres_zero: state.pres.t_zero,
+                    temp_comp_hint: state.temp.chx,
+                    temp_exp_hint: state.temp.hhx,
+                    num_points: settings.resolution,
+                    ode_tol: settings.ode_tol,
+                    conv_tol: settings.loop_tol.inner,
+                    max_iters: settings.max_iters.inner,
+                })
+                .map_err(|_| RunError::InnerLoop)?;
             let values = values.into(); // convert state equation values to engine values
             match state.update(&components, &values, settings.loop_tol.outer) {
                 Ok(new_state) => {
@@ -71,7 +72,7 @@ impl<T: Fluid> Engine<T> {
             };
         }
 
-        bail!("not converged")
+        Err(RunError::OuterLoop)
     }
 }
 
