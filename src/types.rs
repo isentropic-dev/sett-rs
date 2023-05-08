@@ -2,6 +2,15 @@ use serde::Deserialize;
 
 pub const DEFAULT_MAX_ITERS: u32 = 20;
 
+/// An error that can occur during an engine run
+/// TODO: <https://github.com/isentropic-dev/sett-rs/issues/64>
+/// TODO: <https://github.com/isentropic-dev/sett-rs/issues/65>
+#[derive(Debug, Clone, Copy)]
+pub enum RunError {
+    InnerLoop,
+    OuterLoop,
+}
+
 /// Inputs to an engine run
 #[derive(Debug, Clone, Copy)]
 pub struct RunInputs {

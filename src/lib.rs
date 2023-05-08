@@ -16,6 +16,13 @@ pub use crate::config::{Config, Legacy};
 pub use engine::{Components, Engine};
 pub use state_equations::{LuSolver, QrSolver, SvdDefaultSolver};
 
+pub use api::run_engine;
+
+/// An example of how to run an engine from a config
+///
+/// This function will be removed when the MATLAB interface is implemented.
+/// See: <https://github.com/isentropic-dev/sett-rs/issues/40>
+///
 /// # Panics
 ///
 /// If an unsupported fluid model is provided.
